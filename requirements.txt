@@ -1,0 +1,17 @@
+fastapi
+uvicorn[standard]
+streamlit
+pandas
+numpy
+scikit-learn
+lightgbm
+yfinance
+sqlalchemy
+pydantic
+pydantic-settings
+joblib
+python-dateutil
+tenacity
+apscheduler
+requests
+plotly
