@@ -19,6 +19,7 @@ from dashboard.theme import (
     render_empty_state,
     render_forecast_summary_compact,
     render_forecast_telemetry,
+    render_future_outlook_panel,
     render_horizon_comparison_table,
     render_login_brand,
     render_market_stats_strip,
@@ -47,6 +48,20 @@ from dashboard.user_store import (
 
 API_BASE = os.getenv("API_BASE_URL", "http://127.0.0.1:8000")
 
+COMPANY_NAMES: dict[str, str] = {
+    "RELIANCE.NS": "Reliance Industries",
+    "INFY.NS": "Infosys",
+    "TCS.NS": "Tata Consultancy Services",
+    "AAPL": "Apple",
+    "MSFT": "Microsoft",
+    "GOOGL": "Alphabet",
+}
+
+
+def symbol_label(symbol: str) -> str:
+    company = COMPANY_NAMES.get(symbol.upper())
+    return f"{symbol} — {company}" if company else symbol
+
 
 def get_json(path: str, params: dict) -> Any:
     r = requests.get(f"{API_BASE}{path}", params=params, timeout=30)
@@ -69,14 +84,19 @@ def api_ok() -> bool:
 
 
 def load_trained_symbols() -> list[str]:
+    env_symbols = [s.strip().upper() for s in os.getenv("SYMBOLS", "RELIANCE.NS,INFY.NS,TCS.NS").split(",") if s.strip()]
     try:
         payload = get_json("/meta/symbols", {})
-        symbols = [s.strip().upper() for s in payload.get("symbols", []) if s]
-        if symbols:
-            return symbols
+        api_symbols = [s.strip().upper() for s in payload.get("symbols", []) if s]
+        if api_symbols:
+            merged = env_symbols.copy()
+            for sym in api_symbols:
+                if sym not in merged:
+                    merged.append(sym)
+            return merged
     except Exception:
         pass
-    return [s.strip().upper() for s in os.getenv("SYMBOLS", "AAPL,MSFT,GOOGL").split(",") if s.strip()]
+    return env_symbols
 
 
 def horizon_to_timedelta(horizon: str) -> pd.Timedelta:
@@ -339,12 +359,12 @@ def render_sidebar_controls(
             st.rerun()
 
         st.divider()
-        st.markdown("### Market")
+        st.markdown("### India market")
         symbol = st.selectbox(
             "Symbol",
             symbols,
             index=user_index(symbols, prefs.get("favorite_symbol"), 0),
-            format_func=lambda s: s,
+            format_func=symbol_label,
         )
         horizon = st.selectbox(
             "Forecast horizon",
@@ -402,7 +422,7 @@ def render_sidebar_controls(
                 },
             )
             save_watchlist(user["id"], watchlist)
-            st.toast("Preferences saved.", icon="✓")
+            st.toast("Preferences saved.")
 
         if refresh_clicked:
             st.session_state["last_history_key"] = None
@@ -476,8 +496,9 @@ def main():
 
     render_topbar(
         title=f"Hello, {user['username']}",
-        subtitle="Forecasts, price charts, and risk metrics for your selected symbol.",
+        subtitle="Forecasts, price charts, and risk metrics for India stock symbols.",
         symbol=symbol,
+        company_name=COMPANY_NAMES.get(symbol),
         horizon=horizon,
         api_online=online,
     )
@@ -563,6 +584,7 @@ def main():
         with summary_col:
             render_forecast_summary_compact(
                 symbol=symbol,
+                company_name=COMPANY_NAMES.get(symbol),
                 horizon=horizon,
                 timeframe=timeframe,
                 last_close=last_close,
@@ -577,6 +599,18 @@ def main():
             advice_label, advice_reason = build_advice(exp_return=exp_return, p_up=p_up, risk_payload=risk)
             st.markdown("##### Signal")
             render_advice_panel(advice_label, advice_reason)
+            render_future_outlook_panel(
+                symbol=symbol,
+                horizon=horizon,
+                timeframe=timeframe,
+                last_close=last_close,
+                expected_return=exp_return,
+                expected_price=exp_price,
+                interval_low=interval_low,
+                interval_high=interval_high,
+                p_up=p_up,
+                last_timestamp=str(df["ts_utc"].iloc[-1]) if not df.empty else "—",
+            )
             st.caption("Model-assisted guidance only — not financial advice.")
             render_watchlist_snapshot(watchlist_rows, current_symbol=symbol, horizon=horizon)
 

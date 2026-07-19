@@ -32,9 +32,9 @@ Pipeline for intraday/daily OHLCV features, ML forecasts (expected return, calib
   ```
 2. Train models (required before `/predictions/latest` and `/risk/latest` can compute fresh results; intraday horizons are 5m, 15m, 60m plus one daily horizon from config):
   ```bash
-   python -m ml.train --symbols AAPL
+   python -m ml.train --symbols RELIANCE.NS,INFY.NS,TCS.NS
   ```
-   Equivalent: `python ml/train.py --symbols AAPL`
+   Equivalent: `python ml/train.py --symbols RELIANCE.NS,INFY.NS,TCS.NS`
 3. Start the API (from project root):
   ```bash
    python -m uvicorn backend.app:app --host 127.0.0.1 --port 8000
@@ -55,7 +55,7 @@ Pipeline for intraday/daily OHLCV features, ML forecasts (expected return, calib
 | `WinError 10048` on API start       | Port 8000 in use — run `.\scripts\restart.ps1`          |
 | Site looks old or broken            | Old process still running — run `.\scripts\restart.ps1` |
 | Dashboard: "API unreachable"        | Start the API first (step 3)                            |
-| Dashboard: "Missing model artifact" | Train that symbol: `python -m ml.train --symbols AAPL`  |
+| Dashboard: "Missing model artifact" | Train that symbol: `python -m ml.train --symbols RELIANCE.NS,INFY.NS,TCS.NS`  |
 | Only use symbols with models        | Dashboard lists trained symbols via `GET /meta/symbols` |
 
 

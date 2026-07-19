@@ -28,7 +28,7 @@ class Settings:
 
 def load_settings() -> Settings:
     return Settings(
-        symbols=_split_symbols(os.getenv("SYMBOLS", "AAPL,MSFT,GOOGL")),
+        symbols=_split_symbols(os.getenv("SYMBOLS", "RELIANCE.NS,INFY.NS,TCS.NS")),
         data_db_path=os.getenv("DATA_DB_PATH", "data/app.db"),
         model_dir=os.getenv("MODEL_DIR", "models"),
         intraday_interval=os.getenv("INTRADAY_INTERVAL", "1m"),

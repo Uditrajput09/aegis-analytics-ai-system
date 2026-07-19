@@ -199,6 +199,7 @@ def inject_futuristic_theme() -> None:
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <style>
             :root {{
                 --aegis-accent: {COLORS["accent"]};
@@ -244,6 +245,21 @@ def inject_futuristic_theme() -> None:
             h1, h2, h3 {{
                 font-family: 'IBM Plex Sans', sans-serif !important;
                 letter-spacing: -0.02em;
+            }}
+            span[data-testid="stIconMaterial"] {{
+                font-family: 'Material Icons' !important;
+                font-weight: normal !important;
+                font-style: normal !important;
+                font-size: inherit !important;
+                line-height: 1 !important;
+                letter-spacing: normal !important;
+                text-transform: none !important;
+                display: inline-block !important;
+                word-wrap: normal !important;
+                white-space: nowrap !important;
+                direction: ltr !important;
+                -webkit-font-feature-settings: 'liga' !important;
+                -webkit-font-smoothing: antialiased !important;
             }}
             h1 {{
                 font-size: 1.9rem !important;
@@ -613,11 +629,13 @@ def render_topbar(
     title: str,
     subtitle: str,
     symbol: str,
+    company_name: str | None,
     horizon: str,
     api_online: bool,
 ) -> None:
     status_class = "aegis-badge-live" if api_online else "aegis-badge-offline"
     status_text = "API connected" if api_online else "API offline"
+    company_badge = f'<span class="aegis-badge">{company_name}</span>' if company_name else ""
     st.markdown(
         f"""
         <div class="aegis-topbar">
@@ -627,6 +645,7 @@ def render_topbar(
             </div>
             <div class="aegis-topbar-meta">
                 <span class="aegis-badge">{symbol}</span>
+                {company_badge}
                 <span class="aegis-badge">{horizon_label(horizon)}</span>
                 <span class="aegis-badge {status_class}">{status_text}</span>
             </div>
@@ -642,7 +661,7 @@ def render_login_brand() -> None:
         <div class="aegis-login-brand aegis-float">
             <span class="aegis-badge aegis-badge-live">Analytics platform</span>
             <h1>Aegis Analytics</h1>
-            <p>ML forecasts, risk bands, and market dashboards</p>
+            <p>ML forecasts, risk bands, and India stock dashboards</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -733,9 +752,67 @@ def render_prediction_metrics(
     )
 
 
+def render_future_outlook_panel(
+    *,
+    symbol: str,
+    horizon: str,
+    timeframe: str,
+    last_close: float,
+    expected_return: float,
+    expected_price: float,
+    interval_low: float,
+    interval_high: float,
+    p_up: float | None,
+    last_timestamp: str,
+) -> None:
+    future_label = "Future outlook"
+    low_price = last_close * (1.0 + interval_low)
+    high_price = last_close * (1.0 + interval_high)
+    conf = "—" if p_up is None else f"{p_up * 100:.1f}%"
+    conf_color = COLORS["muted"] if p_up is None else _value_color(float(p_up) - 0.5)
+    ret_color = _value_color(expected_return)
+    next_date = last_timestamp
+
+    st.markdown(
+        f"""
+        <div class="aegis-panel">
+            <div class="aegis-pred-label" style="margin-bottom:0.55rem;">{future_label} · {symbol}</div>
+            <div class="aegis-forecast-compact">
+                <div class="aegis-compact-row">
+                    <span class="aegis-pred-label">Target date</span>
+                    <span class="aegis-compact-value">{next_date}</span>
+                </div>
+                <div class="aegis-compact-row">
+                    <span class="aegis-pred-label">Target price</span>
+                    <span class="aegis-compact-value" style="color:{COLORS['magenta']}">${expected_price:,.2f}</span>
+                </div>
+                <div class="aegis-compact-row">
+                    <span class="aegis-pred-label">Expected return</span>
+                    <span class="aegis-compact-value" style="color:{ret_color}">{expected_return * 100:+.3f}%</span>
+                </div>
+                <div class="aegis-compact-row">
+                    <span class="aegis-pred-label">Confidence</span>
+                    <span class="aegis-compact-value" style="color:{conf_color}">{conf}</span>
+                </div>
+                <div class="aegis-compact-row">
+                    <span class="aegis-pred-label">Price band</span>
+                    <span class="aegis-compact-value" style="color:{COLORS['violet']}">${low_price:,.2f} – ${high_price:,.2f}</span>
+                </div>
+                <div class="aegis-compact-row">
+                    <span class="aegis-pred-label">Horizon</span>
+                    <span class="aegis-compact-value">{horizon_label(horizon)} · {timeframe}</span>
+                </div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def render_forecast_summary_compact(
     *,
     symbol: str,
+    company_name: str | None,
     horizon: str,
     timeframe: str,
     last_close: float,
@@ -771,9 +848,11 @@ def render_forecast_summary_compact(
         row("Price band", f"${low_price:,.2f} – ${high_price:,.2f}", COLORS["violet"]),
     ]
 
+    company_display = f"<div class=\"aegis-pred-label\" style=\"margin-bottom:0.35rem;color:{COLORS['accent']};\">{company_name}</div>" if company_name else ""
     st.markdown(
         f"""
         <div class="aegis-panel aegis-forecast-compact">
+            {company_display}
             <div class="aegis-pred-label" style="margin-bottom:0.5rem;">
                 {symbol} · {horizon_label(horizon)} · {timeframe}
             </div>

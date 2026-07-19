@@ -62,17 +62,16 @@ def fetch_ohlcv(
     Fetch OHLCV from Yahoo Finance via yfinance.
     Returns a DataFrame indexed by timestamp (may be tz-aware).
     """
-    df = pd.DataFrame()
+    yf = _import_yfinance()
+    if yf is None:
+        raise RuntimeError("The 'yfinance' package is required to fetch OHLCV data. Install it using 'pip install yfinance'.")
 
+    df = pd.DataFrame()
     try:
         ticker = yf.Ticker(symbol)
         df = ticker.history(interval=interval, period=period, auto_adjust=auto_adjust)
     except Exception:
         df = pd.DataFrame()
-
-    yf = _import_yfinance()
-    if yf is None:
-        raise RuntimeError("The 'yfinance' package is required to fetch OHLCV data. Install it using 'pip install yfinance'.")
 
     if df is None or df.empty:
         try:
