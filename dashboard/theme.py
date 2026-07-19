@@ -84,6 +84,15 @@ _FLOATING_CSS = """
                 0%, 100% { transform: translateY(0); }
                 50% { transform: translateY(-4px); }
             }
+            @keyframes aegis-panel-reveal {
+                0% { opacity: 0; transform: translateY(8px) scale(0.985); }
+                100% { opacity: 1; transform: translateY(0) scale(1); }
+            }
+            @keyframes aegis-toggle-pop {
+                0% { transform: scale(0.96); }
+                60% { transform: scale(1.02); }
+                100% { transform: scale(1); }
+            }
             .aegis-float-layer {
                 position: fixed;
                 inset: 0;
@@ -183,6 +192,12 @@ _FLOATING_CSS = """
             .aegis-chip {
                 animation: aegis-badge-float 5s ease-in-out infinite;
             }
+            .aegis-assistant-panel {
+                animation: aegis-panel-reveal 0.45s ease-out;
+            }
+            .aegis-assistant-toggle {
+                animation: aegis-toggle-pop 0.28s ease-out;
+            }
             @media (prefers-reduced-motion: reduce) {
                 .aegis-orb, .aegis-float, .aegis-pred-card, .aegis-panel,
                 .aegis-empty, .aegis-login-brand,
@@ -199,7 +214,6 @@ def inject_futuristic_theme() -> None:
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
         <style>
             :root {{
                 --aegis-accent: {COLORS["accent"]};
@@ -212,69 +226,41 @@ def inject_futuristic_theme() -> None:
                 position: relative;
                 overflow-x: hidden;
                 background:
-                    radial-gradient(ellipse 70% 45% at 0% 0%, rgba(99, 179, 237, 0.12), transparent 50%),
-                    radial-gradient(ellipse 50% 35% at 100% 0%, rgba(167, 139, 250, 0.14), transparent 45%),
-                    linear-gradient(180deg, #03050b 0%, #07111e 48%, #060912 100%);
+                    radial-gradient(ellipse 70% 45% at 0% 0%, rgba(99, 179, 237, 0.08), transparent 55%),
+                    radial-gradient(ellipse 50% 35% at 100% 0%, rgba(167, 139, 250, 0.07), transparent 50%),
+                    linear-gradient(180deg, #060912 0%, #0a1020 50%, #060912 100%);
                 color: var(--aegis-text);
                 font-family: 'IBM Plex Sans', system-ui, sans-serif;
-                scroll-behavior: smooth;
-            }}
-            .stApp ::selection {{
-                background: rgba(99, 179, 237, 0.25);
-                color: {COLORS["text"]};
             }}
             #MainMenu, footer, header[data-testid="stHeader"] {{
                 background: transparent !important;
-                box-shadow: none !important;
             }}
             .block-container {{
-                padding-top: 1.5rem;
+                padding-top: 1.25rem;
                 padding-bottom: 2rem;
-                max-width: 1320px;
+                max-width: 1280px;
             }}
             [data-testid="stSidebar"] > div {{
                 position: relative;
                 z-index: 1;
             }}
-            [data-testid="stSidebar"] {{
-                background: linear-gradient(180deg, rgba(6, 9, 18, 0.96), rgba(8, 12, 23, 0.95)) !important;
-                border-right: 1px solid {COLORS["border"]};
-                box-shadow: inset -1px 0 0 rgba(99, 179, 237, 0.06);
-            }}
-            [data-testid="stSidebar"] .block-container {{ padding-top: 1rem; }}
             h1, h2, h3 {{
                 font-family: 'IBM Plex Sans', sans-serif !important;
                 letter-spacing: -0.02em;
             }}
-            span[data-testid="stIconMaterial"] {{
-                font-family: 'Material Icons' !important;
-                font-weight: normal !important;
-                font-style: normal !important;
-                font-size: inherit !important;
-                line-height: 1 !important;
-                letter-spacing: normal !important;
-                text-transform: none !important;
-                display: inline-block !important;
-                word-wrap: normal !important;
-                white-space: nowrap !important;
-                direction: ltr !important;
-                -webkit-font-feature-settings: 'liga' !important;
-                -webkit-font-smoothing: antialiased !important;
-            }}
             h1 {{
-                font-size: 1.9rem !important;
+                font-size: 1.75rem !important;
                 font-weight: 700 !important;
                 color: {COLORS["text"]} !important;
-                letter-spacing: -0.04em;
             }}
             h2 {{
-                font-size: 1.1rem !important;
+                font-size: 1.05rem !important;
                 font-weight: 600 !important;
                 color: {COLORS["text"]} !important;
                 margin-bottom: 0.75rem !important;
             }}
             h3 {{
-                font-size: 0.98rem !important;
+                font-size: 0.95rem !important;
                 color: {COLORS["muted"]} !important;
             }}
             p, label, .stMarkdown, span {{
@@ -332,25 +318,18 @@ def inject_futuristic_theme() -> None:
                 font-family: 'IBM Plex Mono', monospace !important;
             }}
             .aegis-pred-card {{
-                background: linear-gradient(180deg, rgba(14, 24, 48, 0.95), rgba(9, 16, 30, 0.96));
-                border: 1px solid rgba(99, 179, 237, 0.16);
-                border-radius: 18px;
-                padding: 1rem 1.05rem;
-                min-height: 88px;
-                box-shadow: 0 18px 35px rgba(0, 0, 0, 0.14);
-                transition: transform 0.18s ease, border-color 0.18s ease;
-            }}
-            .aegis-pred-card:hover {{
-                transform: translateY(-2px);
-                border-color: rgba(99, 179, 237, 0.26);
+                background: {COLORS["bg_panel"]};
+                border: 1px solid {COLORS["border"]};
+                border-radius: 12px;
+                padding: 0.9rem 1rem;
+                min-height: 76px;
             }}
             .aegis-pred-grid {{
                 display: grid;
-                grid-template-columns: repeat(4, minmax(0, 1fr));
-                gap: 0.75rem;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 0.65rem;
                 margin-bottom: 1rem;
             }}
-
             @media (max-width: 1100px) {{
                 .aegis-pred-grid {{ grid-template-columns: repeat(2, 1fr); }}
             }}
@@ -360,32 +339,27 @@ def inject_futuristic_theme() -> None:
             .aegis-pred-table {{
                 width: 100%;
                 border-collapse: separate;
-                border-spacing: 0 5px;
+                border-spacing: 0 4px;
                 font-family: 'IBM Plex Mono', monospace !important;
-                font-size: 0.85rem;
-                min-width: 100%;
+                font-size: 0.8rem;
             }}
             .aegis-pred-table th {{
-                font-size: 0.68rem;
-                letter-spacing: 0.08em;
+                font-size: 0.65rem;
+                letter-spacing: 0.06em;
                 text-transform: uppercase;
                 color: {COLORS["muted"]};
                 text-align: left;
-                padding: 0.55rem 0.85rem;
-                border-bottom: 1px solid rgba(99, 179, 237, 0.12);
+                padding: 0.45rem 0.7rem;
+                border-bottom: 1px solid {COLORS["border"]};
                 font-weight: 600;
             }}
             .aegis-pred-table td {{
-                padding: 0.65rem 0.85rem;
+                padding: 0.5rem 0.7rem;
                 color: {COLORS["text"]};
-                background: rgba(13, 24, 42, 0.85);
-                transition: background 0.18s ease;
+                background: rgba(10, 16, 30, 0.5);
             }}
-            .aegis-pred-table tr:hover td {{
-                background: rgba(99, 179, 237, 0.08);
-            }}
-            .aegis-pred-table tr td:first-child {{ border-radius: 10px 0 0 10px; }}
-            .aegis-pred-table tr td:last-child {{ border-radius: 0 10px 10px 0; }}
+            .aegis-pred-table tr td:first-child {{ border-radius: 8px 0 0 8px; }}
+            .aegis-pred-table tr td:last-child {{ border-radius: 0 8px 8px 0; }}
             .aegis-telemetry-strip {{
                 display: grid;
                 grid-template-columns: repeat(3, 1fr);
@@ -429,24 +403,19 @@ def inject_futuristic_theme() -> None:
                 border: 1px solid {COLORS["border_strong"]} !important;
             }}
             .stButton > button {{
-                font-weight: 600 !important;
-                font-size: 0.88rem !important;
-                border-radius: 999px !important;
-                border: 1px solid transparent !important;
-                background: linear-gradient(135deg, rgba(99, 179, 237, 0.22), rgba(167, 139, 250, 0.20)) !important;
-                color: {COLORS["text"]} !important;
-                box-shadow: inset 0 0 0 1px rgba(99, 179, 237, 0.10);
-                transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+                font-weight: 500 !important;
+                font-size: 0.8rem !important;
+                border-radius: 8px !important;
+                border: 1px solid {COLORS["border_strong"]} !important;
+                background: {COLORS["accent_soft"]} !important;
+                color: {COLORS["accent"]} !important;
+                transition: background 0.15s ease, border-color 0.15s ease, transform 0.2s ease;
             }}
             .stButton > button:hover {{
-                background: linear-gradient(135deg, rgba(99, 179, 237, 0.35), rgba(167, 139, 250, 0.25)) !important;
+                background: rgba(99, 179, 237, 0.2) !important;
+                border-color: {COLORS["accent"]} !important;
                 color: {COLORS["text"]} !important;
-                transform: translateY(-1px);
-            }}
-            .stDownloadButton > button {{
-                border-radius: 999px !important;
-                background: linear-gradient(135deg, rgba(99, 179, 237, 0.16), rgba(167, 139, 250, 0.16)) !important;
-                color: {COLORS["text"]} !important;
+                transform: translateY(-2px);
             }}
             [data-testid="stFormSubmitButton"] > button {{
                 background: {COLORS["accent"]} !important;
@@ -455,32 +424,18 @@ def inject_futuristic_theme() -> None:
                 border: none !important;
             }}
             .stTextInput input,
-            .stTextArea textarea,
             .stSelectbox div[data-baseweb="select"] > div,
-            .stMultiSelect div[data-baseweb="select"] > div,
-            .stNumberInput input,
-            .stSlider > div[role="slider"] {{
-                background: rgba(10, 16, 30, 0.92) !important;
-                border-color: rgba(99, 179, 237, 0.18) !important;
+            .stMultiSelect div[data-baseweb="select"] > div {{
+                background: rgba(10, 16, 30, 0.85) !important;
+                border-color: {COLORS["border"]} !important;
                 color: var(--aegis-text) !important;
-                border-radius: 12px !important;
-                box-shadow: inset 0 1px 2px rgba(255,255,255,0.04);
-            }}
-            .stTextInput input:focus,
-            .stTextArea textarea:focus,
-            .stSelectbox div[data-baseweb="select"] > div:focus,
-            .stMultiSelect div[data-baseweb="select"] > div:focus {{
-                border-color: {COLORS["accent"]} !important;
-                outline: none !important;
-                box-shadow: 0 0 0 4px rgba(99, 179, 237, 0.12) !important;
+                border-radius: 8px !important;
             }}
             [data-testid="stDataFrame"] {{
-                border: 1px solid rgba(99, 179, 237, 0.12);
-                border-radius: 14px;
+                border: 1px solid {COLORS["border"]};
+                border-radius: 10px;
                 overflow: hidden;
-                background: rgba(10, 16, 30, 0.9);
             }}
-
             .aegis-topbar {{
                 display: flex;
                 flex-wrap: wrap;
@@ -540,16 +495,15 @@ def inject_futuristic_theme() -> None:
                 background: rgba(251, 113, 133, 0.08);
             }}
             .aegis-panel {{
-                background: linear-gradient(180deg, rgba(14, 22, 42, 0.94), rgba(9, 14, 28, 0.98));
-                border: 1px solid rgba(99, 179, 237, 0.16);
-                border-radius: 18px;
-                padding: 1.1rem 1.2rem;
-                margin-bottom: 1rem;
-                box-shadow: 0 18px 36px rgba(0, 0, 0, 0.12);
+                background: {COLORS["bg_panel"]};
+                border: 1px solid {COLORS["border"]};
+                border-radius: 12px;
+                padding: 1rem 1.15rem;
+                margin-bottom: 0.85rem;
             }}
             .aegis-advice-buy {{
-                border-left: 4px solid {COLORS["success"]};
-                background: rgba(52, 211, 153, 0.1);
+                border-left: 3px solid {COLORS["success"]};
+                background: rgba(52, 211, 153, 0.06);
             }}
             .aegis-advice-sell {{
                 border-left: 3px solid {COLORS["danger"]};
@@ -588,6 +542,115 @@ def inject_futuristic_theme() -> None:
                 font-size: 0.72rem;
                 color: {COLORS["accent"]};
             }}
+            .aegis-assistant-overlay {{
+                position: fixed;
+                inset: 0;
+                z-index: 9999;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                padding: 1rem;
+                background: rgba(2, 6, 23, 0.82);
+                backdrop-filter: blur(16px);
+            }}
+            .aegis-assistant-overlay.aegis-open {{
+                display: flex;
+            }}
+            .aegis-assistant-shell {{
+                width: min(1120px, 100%);
+                max-height: 92vh;
+                overflow: auto;
+                border-radius: 24px;
+                padding: 1rem;
+                border: 1px solid rgba(99, 179, 237, 0.24);
+                background: linear-gradient(180deg, rgba(9, 15, 28, 0.98), rgba(5, 9, 18, 0.98));
+                box-shadow: 0 30px 80px rgba(0, 0, 0, 0.38);
+            }}
+            .aegis-assistant-header {{
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                gap: 1rem;
+                margin-bottom: 0.8rem;
+            }}
+            .aegis-assistant-title {{
+                margin: 0;
+                font-size: 1.1rem !important;
+                font-weight: 700 !important;
+                color: {COLORS["text"]} !important;
+            }}
+            .aegis-assistant-subtitle {{
+                margin: 0.2rem 0 0;
+                color: {COLORS["muted"]};
+                font-size: 0.86rem;
+            }}
+            .aegis-assistant-close {{
+                display: flex;
+                justify-content: flex-end;
+            }}
+            .aegis-assistant-close > div {{
+                display: inline-block;
+            }}
+            .aegis-assistant-grid {{
+                display: grid;
+                grid-template-columns: 1.05fr 0.95fr;
+                gap: 1rem;
+                margin-top: 0.75rem;
+            }}
+            .aegis-assistant-card {{
+                background: rgba(10, 16, 30, 0.72);
+                border: 1px solid {COLORS["border"]};
+                border-radius: 16px;
+                padding: 0.95rem;
+            }}
+            .aegis-assistant-card h4 {{
+                margin: 0 0 0.45rem;
+                color: {COLORS["text"]};
+                font-size: 0.95rem;
+            }}
+            .aegis-assistant-card p {{
+                margin: 0 0 0.6rem;
+                color: {COLORS["muted"]};
+                font-size: 0.84rem;
+            }}
+            .aegis-chat-history {{
+                display: flex;
+                flex-direction: column;
+                gap: 0.55rem;
+                margin-top: 0.75rem;
+            }}
+            .aegis-chat-bubble {{
+                padding: 0.7rem 0.8rem;
+                border-radius: 12px;
+                border: 1px solid {COLORS["border"]};
+                font-size: 0.85rem;
+                line-height: 1.45;
+            }}
+            .aegis-chat-bubble-user {{
+                background: rgba(99, 179, 237, 0.12);
+                border-color: rgba(99, 179, 237, 0.24);
+            }}
+            .aegis-chat-bubble-assistant {{
+                background: rgba(167, 139, 250, 0.09);
+                border-color: rgba(167, 139, 250, 0.24);
+            }}
+            .aegis-assistant-list {{
+                display: flex;
+                flex-direction: column;
+                gap: 0.45rem;
+                margin-top: 0.6rem;
+            }}
+            .aegis-assistant-list-item {{
+                padding: 0.55rem 0.65rem;
+                border-radius: 10px;
+                background: rgba(10, 16, 30, 0.55);
+                border: 1px solid rgba(148, 163, 184, 0.15);
+                font-size: 0.8rem;
+                color: {COLORS["text"]};
+            }}
+            @media (max-width: 900px) {{
+                .aegis-assistant-grid {{ grid-template-columns: 1fr; }}
+            }}
             .aegis-empty {{
                 text-align: center;
                 padding: 2rem 1rem;
@@ -603,6 +666,29 @@ def inject_futuristic_theme() -> None:
             }}
             .stAlert {{ border-radius: 10px !important; }}
             div[data-testid="stVerticalBlockBorderWrapper"] {{ border-radius: 12px; }}
+            /* Hide Streamlit icon text fallbacks (e.g., keyboard_double_arrow_left) */
+            button[kind="icon"] {{
+                font-size: 0 !important;
+                line-height: 0 !important;
+            }}
+            button[kind="icon"] svg {{
+                font-size: 1rem !important;
+                line-height: 1rem !important;
+            }}
+            /* Fallback: Hide material icon text in any button */
+            .material-icons,
+            .material-icons-outlined {{
+                font-size: 0 !important;
+                display: inline-block;
+                width: 1.25rem;
+                height: 1.25rem;
+            }}
+            .material-icons svg,
+            .material-icons-outlined svg {{
+                font-size: 1.25rem;
+                width: 100%;
+                height: 100%;
+            }}
         </style>
         """,
         unsafe_allow_html=True,
@@ -624,18 +710,148 @@ def render_floating_background() -> None:
     )
 
 
+def render_assistant_overlay(*, symbol: str, horizon: str, timeframe: str) -> None:
+    if not st.session_state.get("assistant_open", True):
+        return
+
+    st.session_state.setdefault("assistant_chat_history", [
+        {"role": "assistant", "text": "Hello! I can help you review strategy ideas, plan future trades, and log buy/sell/hold records."}
+    ])
+    st.session_state.setdefault("strategy_ideas", [])
+    st.session_state.setdefault("trade_plans", [])
+    st.session_state.setdefault("trade_records", [])
+    st.session_state.setdefault("assistant_view", "home")
+
+    st.markdown(
+        """
+        <div class="aegis-assistant-panel" style="
+            border: 1px solid rgba(99, 179, 237, 0.22);
+            border-radius: 18px;
+            padding: 1rem 1.1rem;
+            margin: 1rem 0 1.25rem;
+            background: linear-gradient(180deg, rgba(10, 16, 30, 0.96) 0%, rgba(6, 10, 20, 0.96) 100%);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.22);
+        ">
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(f"### Aegis Assistant · {symbol}")
+    st.caption("Choose a workflow to plan, record, or chat about the current setup.")
+
+    option_keys = [
+        ("Strategy planning", "strategy"),
+        ("Record trade", "trade"),
+        ("Personalized chat", "chat"),
+    ]
+    cols = st.columns(3)
+    current_view = st.session_state.get("assistant_view", "home")
+    for col, (label, key) in zip(cols, option_keys, strict=False):
+        button_type = "primary" if current_view == key else "secondary"
+        if col.button(label, use_container_width=True, type=button_type):
+            st.session_state["assistant_view"] = key
+            st.rerun()
+
+    st.divider()
+
+    if current_view == "strategy":
+        st.markdown("#### Strategy planning")
+        st.caption("Capture a plan for this symbol, horizon, and market context.")
+        with st.form("assistant_strategy_form"):
+            strategy = st.text_area(
+                "Strategy note",
+                key="assistant_strategy_note",
+                height=90,
+                placeholder="Example: Focus on pullbacks with confirmation from the moving averages.",
+            )
+            if st.form_submit_button("Save strategy", use_container_width=True):
+                if strategy.strip():
+                    st.session_state.strategy_ideas.append({"text": strategy.strip(), "symbol": symbol, "horizon": horizon})
+                    st.success("Strategy saved.")
+                    st.rerun()
+        if st.session_state.strategy_ideas:
+            st.markdown("**Recent strategies**")
+            for idea in reversed(st.session_state.strategy_ideas[-3:]):
+                st.caption(f"• {idea['text']}")
+
+    elif current_view == "trade":
+        st.markdown("#### Record trade")
+        st.caption("Log a buy, sell, or hold decision for later review.")
+        with st.form("assistant_trade_form"):
+            side = st.selectbox("Action", ["Buy", "Sell", "Hold"], key="assistant_trade_side")
+            price = st.text_input("Price", key="assistant_trade_price", placeholder="1345.00")
+            quantity = st.text_input("Quantity", key="assistant_trade_quantity", placeholder="100")
+            note = st.text_input("Note", key="assistant_trade_note", placeholder="Reason or target")
+            if st.form_submit_button("Save record", use_container_width=True):
+                if price.strip() and note.strip():
+                    st.session_state.trade_records.append(
+                        {
+                            "type": side,
+                            "price": price.strip(),
+                            "quantity": quantity.strip() or "—",
+                            "note": note.strip(),
+                            "symbol": symbol,
+                        }
+                    )
+                    st.success("Trade record saved.")
+                    st.rerun()
+        if st.session_state.trade_records:
+            st.markdown("**Recent records**")
+            for rec in reversed(st.session_state.trade_records[-4:]):
+                st.caption(f"• {rec['type']} {rec['symbol']} @ {rec['price']} · {rec['quantity']} — {rec['note']}")
+
+    elif current_view == "chat":
+        st.markdown("#### Personalized chat")
+        st.caption("Ask for guidance tailored to the current symbol and horizon.")
+        with st.form("assistant_chat_form"):
+            msg_input = st.text_input(
+                "Your message",
+                key="assistant_chat_msg",
+                placeholder="Try: Should I be more cautious on this setup?",
+            )
+            if st.form_submit_button("Send", use_container_width=True):
+                if msg_input.strip():
+                    st.session_state.assistant_chat_history.append({"role": "user", "text": msg_input.strip()})
+                    lower = msg_input.strip().lower()
+                    if any(word in lower for word in ("buy", "sell", "hold", "trade")):
+                        reply = (
+                            f"For {symbol} on {horizon_label(horizon)}, I’d frame the decision around the current forecast, "
+                            "your risk limit, and the latest price structure before taking action."
+                        )
+                    elif any(word in lower for word in ("strategy", "plan", "goal")):
+                        reply = f"Your strategy should stay aligned with {symbol} and the {horizon_label(horizon)} horizon while keeping downside risk controlled."
+                    else:
+                        reply = (
+                            f"I’m tailoring this to {symbol} · {horizon_label(horizon)} · {timeframe}. "
+                            "I can help you review the signal, plan next steps, or record the trade decision."
+                        )
+                    st.session_state.assistant_chat_history.append({"role": "assistant", "text": reply})
+                    st.rerun()
+        if st.session_state.get("assistant_chat_history"):
+            st.markdown("**Recent chat**")
+            for item in st.session_state.assistant_chat_history[-6:]:
+                role = item.get("role", "assistant")
+                label = "You" if role == "user" else "Assistant"
+                st.markdown(f"**{label}:** {item.get('text', '')}")
+
+    else:
+        st.markdown("#### Quick launch")
+        st.caption("Pick one path to get started.")
+        st.info("Use Strategy planning to frame your setup, Record trade to log a buy/sell/hold decision, or Personal chat for fast guidance.")
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+
 def render_topbar(
     *,
     title: str,
     subtitle: str,
     symbol: str,
-    company_name: str | None,
     horizon: str,
     api_online: bool,
 ) -> None:
     status_class = "aegis-badge-live" if api_online else "aegis-badge-offline"
     status_text = "API connected" if api_online else "API offline"
-    company_badge = f'<span class="aegis-badge">{company_name}</span>' if company_name else ""
     st.markdown(
         f"""
         <div class="aegis-topbar">
@@ -645,7 +861,6 @@ def render_topbar(
             </div>
             <div class="aegis-topbar-meta">
                 <span class="aegis-badge">{symbol}</span>
-                {company_badge}
                 <span class="aegis-badge">{horizon_label(horizon)}</span>
                 <span class="aegis-badge {status_class}">{status_text}</span>
             </div>
@@ -661,7 +876,7 @@ def render_login_brand() -> None:
         <div class="aegis-login-brand aegis-float">
             <span class="aegis-badge aegis-badge-live">Analytics platform</span>
             <h1>Aegis Analytics</h1>
-            <p>ML forecasts, risk bands, and India stock dashboards</p>
+            <p>ML forecasts, risk bands, and market dashboards</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -752,67 +967,9 @@ def render_prediction_metrics(
     )
 
 
-def render_future_outlook_panel(
-    *,
-    symbol: str,
-    horizon: str,
-    timeframe: str,
-    last_close: float,
-    expected_return: float,
-    expected_price: float,
-    interval_low: float,
-    interval_high: float,
-    p_up: float | None,
-    last_timestamp: str,
-) -> None:
-    future_label = "Future outlook"
-    low_price = last_close * (1.0 + interval_low)
-    high_price = last_close * (1.0 + interval_high)
-    conf = "—" if p_up is None else f"{p_up * 100:.1f}%"
-    conf_color = COLORS["muted"] if p_up is None else _value_color(float(p_up) - 0.5)
-    ret_color = _value_color(expected_return)
-    next_date = last_timestamp
-
-    st.markdown(
-        f"""
-        <div class="aegis-panel">
-            <div class="aegis-pred-label" style="margin-bottom:0.55rem;">{future_label} · {symbol}</div>
-            <div class="aegis-forecast-compact">
-                <div class="aegis-compact-row">
-                    <span class="aegis-pred-label">Target date</span>
-                    <span class="aegis-compact-value">{next_date}</span>
-                </div>
-                <div class="aegis-compact-row">
-                    <span class="aegis-pred-label">Target price</span>
-                    <span class="aegis-compact-value" style="color:{COLORS['magenta']}">${expected_price:,.2f}</span>
-                </div>
-                <div class="aegis-compact-row">
-                    <span class="aegis-pred-label">Expected return</span>
-                    <span class="aegis-compact-value" style="color:{ret_color}">{expected_return * 100:+.3f}%</span>
-                </div>
-                <div class="aegis-compact-row">
-                    <span class="aegis-pred-label">Confidence</span>
-                    <span class="aegis-compact-value" style="color:{conf_color}">{conf}</span>
-                </div>
-                <div class="aegis-compact-row">
-                    <span class="aegis-pred-label">Price band</span>
-                    <span class="aegis-compact-value" style="color:{COLORS['violet']}">${low_price:,.2f} – ${high_price:,.2f}</span>
-                </div>
-                <div class="aegis-compact-row">
-                    <span class="aegis-pred-label">Horizon</span>
-                    <span class="aegis-compact-value">{horizon_label(horizon)} · {timeframe}</span>
-                </div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
 def render_forecast_summary_compact(
     *,
     symbol: str,
-    company_name: str | None,
     horizon: str,
     timeframe: str,
     last_close: float,
@@ -848,11 +1005,9 @@ def render_forecast_summary_compact(
         row("Price band", f"${low_price:,.2f} – ${high_price:,.2f}", COLORS["violet"]),
     ]
 
-    company_display = f"<div class=\"aegis-pred-label\" style=\"margin-bottom:0.35rem;color:{COLORS['accent']};\">{company_name}</div>" if company_name else ""
     st.markdown(
         f"""
         <div class="aegis-panel aegis-forecast-compact">
-            {company_display}
             <div class="aegis-pred-label" style="margin-bottom:0.5rem;">
                 {symbol} · {horizon_label(horizon)} · {timeframe}
             </div>
@@ -1092,8 +1247,11 @@ def render_profile_panel(
     current_symbol: str,
     current_horizon: str,
 ) -> None:
-    watchlist_html = "".join(f'<span class="aegis-chip">{s}</span>' for s in watchlist)
-    if not watchlist_html:
+    if watchlist:
+        watchlist_html = "".join(
+            f'<span class="aegis-chip" style="margin:0.2rem 0.3rem 0.2rem 0;">{s}</span>' for s in watchlist
+        )
+    else:
         watchlist_html = f'<span style="color:{COLORS["muted"]};font-size:0.85rem;">Add symbols in the sidebar</span>'
 
     st.markdown(
@@ -1106,7 +1264,7 @@ def render_profile_panel(
                 {favorite_symbol or current_symbol} · {horizon_label(favorite_horizon or current_horizon)}
             </p>
             <div class="aegis-pred-label">Watchlist</div>
-            <div style="margin-top:0.35rem;">{watchlist_html}</div>
+            <div style="margin-top:0.4rem;display:flex;flex-wrap:wrap;gap:0.35rem;">{watchlist_html}</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -1209,11 +1367,11 @@ def render_watchlist_snapshot(rows: list[dict[str, Any]], *, current_symbol: str
         active = " · selected" if sym == current_symbol else ""
         body.append(
             f"<tr>"
-            f"<td>{sym}{active}</td>"
-            f"<td style='color:{_value_color(exp_ret)}'>{exp_ret * 100:+.3f}%</td>"
-            f"<td style='color:{COLORS['accent']}'>${float(row.get('expected_price', 0)):,.2f}</td>"
-            f"<td style='color:{COLORS['violet']}'>{'—' if p_up is None else f'{float(p_up) * 100:.1f}%'}</td>"
-            f"<td style='color:{advice_color}'>{advice}</td>"
+            f"<td><strong>{sym}</strong>{active}</td>"
+            f"<td style='color:{_value_color(exp_ret)};font-weight:600;'>{exp_ret * 100:+.3f}%</td>"
+            f"<td style='color:{COLORS['accent']};font-weight:600;'>${float(row.get('expected_price', 0)):,.2f}</td>"
+            f"<td style='color:{COLORS['violet']};font-weight:600;'>{'—' if p_up is None else f'{float(p_up) * 100:.1f}%'}</td>"
+            f"<td style='color:{advice_color};font-weight:600;'>{advice}</td>"
             f"</tr>"
         )
 

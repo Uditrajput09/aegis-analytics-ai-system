@@ -63,6 +63,30 @@ def init_user_store() -> None:
                 created_at TEXT NOT NULL,
                 FOREIGN KEY(user_id) REFERENCES users(id)
             );
+
+            CREATE TABLE IF NOT EXISTS user_strategies (
+                user_id INTEGER PRIMARY KEY,
+                name TEXT NOT NULL,
+                min_return REAL NOT NULL,
+                min_p_up REAL NOT NULL,
+                max_downside REAL NOT NULL,
+                notes TEXT,
+                updated_at TEXT NOT NULL,
+                FOREIGN KEY(user_id) REFERENCES users(id)
+            );
+
+            CREATE TABLE IF NOT EXISTS trade_records (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER NOT NULL,
+                symbol TEXT NOT NULL,
+                side TEXT NOT NULL,
+                quantity REAL NOT NULL,
+                price REAL NOT NULL,
+                horizon TEXT,
+                notes TEXT,
+                created_at TEXT NOT NULL,
+                FOREIGN KEY(user_id) REFERENCES users(id)
+            );
             """
         )
         conn.commit()
