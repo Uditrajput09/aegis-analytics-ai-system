@@ -211,41 +211,54 @@ def inject_futuristic_theme() -> None:
                 position: relative;
                 overflow-x: hidden;
                 background:
-                    radial-gradient(ellipse 70% 45% at 0% 0%, rgba(99, 179, 237, 0.08), transparent 55%),
-                    radial-gradient(ellipse 50% 35% at 100% 0%, rgba(167, 139, 250, 0.07), transparent 50%),
-                    linear-gradient(180deg, #060912 0%, #0a1020 50%, #060912 100%);
+                    radial-gradient(ellipse 70% 45% at 0% 0%, rgba(99, 179, 237, 0.12), transparent 50%),
+                    radial-gradient(ellipse 50% 35% at 100% 0%, rgba(167, 139, 250, 0.14), transparent 45%),
+                    linear-gradient(180deg, #03050b 0%, #07111e 48%, #060912 100%);
                 color: var(--aegis-text);
                 font-family: 'IBM Plex Sans', system-ui, sans-serif;
+                scroll-behavior: smooth;
+            }}
+            .stApp ::selection {{
+                background: rgba(99, 179, 237, 0.25);
+                color: {COLORS["text"]};
             }}
             #MainMenu, footer, header[data-testid="stHeader"] {{
                 background: transparent !important;
+                box-shadow: none !important;
             }}
             .block-container {{
-                padding-top: 1.25rem;
+                padding-top: 1.5rem;
                 padding-bottom: 2rem;
-                max-width: 1280px;
+                max-width: 1320px;
             }}
             [data-testid="stSidebar"] > div {{
                 position: relative;
                 z-index: 1;
             }}
+            [data-testid="stSidebar"] {{
+                background: linear-gradient(180deg, rgba(6, 9, 18, 0.96), rgba(8, 12, 23, 0.95)) !important;
+                border-right: 1px solid {COLORS["border"]};
+                box-shadow: inset -1px 0 0 rgba(99, 179, 237, 0.06);
+            }}
+            [data-testid="stSidebar"] .block-container {{ padding-top: 1rem; }}
             h1, h2, h3 {{
                 font-family: 'IBM Plex Sans', sans-serif !important;
                 letter-spacing: -0.02em;
             }}
             h1 {{
-                font-size: 1.75rem !important;
+                font-size: 1.9rem !important;
                 font-weight: 700 !important;
                 color: {COLORS["text"]} !important;
+                letter-spacing: -0.04em;
             }}
             h2 {{
-                font-size: 1.05rem !important;
+                font-size: 1.1rem !important;
                 font-weight: 600 !important;
                 color: {COLORS["text"]} !important;
                 margin-bottom: 0.75rem !important;
             }}
             h3 {{
-                font-size: 0.95rem !important;
+                font-size: 0.98rem !important;
                 color: {COLORS["muted"]} !important;
             }}
             p, label, .stMarkdown, span {{
@@ -303,18 +316,25 @@ def inject_futuristic_theme() -> None:
                 font-family: 'IBM Plex Mono', monospace !important;
             }}
             .aegis-pred-card {{
-                background: {COLORS["bg_panel"]};
-                border: 1px solid {COLORS["border"]};
-                border-radius: 12px;
-                padding: 0.9rem 1rem;
-                min-height: 76px;
+                background: linear-gradient(180deg, rgba(14, 24, 48, 0.95), rgba(9, 16, 30, 0.96));
+                border: 1px solid rgba(99, 179, 237, 0.16);
+                border-radius: 18px;
+                padding: 1rem 1.05rem;
+                min-height: 88px;
+                box-shadow: 0 18px 35px rgba(0, 0, 0, 0.14);
+                transition: transform 0.18s ease, border-color 0.18s ease;
+            }}
+            .aegis-pred-card:hover {{
+                transform: translateY(-2px);
+                border-color: rgba(99, 179, 237, 0.26);
             }}
             .aegis-pred-grid {{
                 display: grid;
-                grid-template-columns: repeat(4, 1fr);
-                gap: 0.65rem;
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+                gap: 0.75rem;
                 margin-bottom: 1rem;
             }}
+
             @media (max-width: 1100px) {{
                 .aegis-pred-grid {{ grid-template-columns: repeat(2, 1fr); }}
             }}
@@ -324,27 +344,32 @@ def inject_futuristic_theme() -> None:
             .aegis-pred-table {{
                 width: 100%;
                 border-collapse: separate;
-                border-spacing: 0 4px;
+                border-spacing: 0 5px;
                 font-family: 'IBM Plex Mono', monospace !important;
-                font-size: 0.8rem;
+                font-size: 0.85rem;
+                min-width: 100%;
             }}
             .aegis-pred-table th {{
-                font-size: 0.65rem;
-                letter-spacing: 0.06em;
+                font-size: 0.68rem;
+                letter-spacing: 0.08em;
                 text-transform: uppercase;
                 color: {COLORS["muted"]};
                 text-align: left;
-                padding: 0.45rem 0.7rem;
-                border-bottom: 1px solid {COLORS["border"]};
+                padding: 0.55rem 0.85rem;
+                border-bottom: 1px solid rgba(99, 179, 237, 0.12);
                 font-weight: 600;
             }}
             .aegis-pred-table td {{
-                padding: 0.5rem 0.7rem;
+                padding: 0.65rem 0.85rem;
                 color: {COLORS["text"]};
-                background: rgba(10, 16, 30, 0.5);
+                background: rgba(13, 24, 42, 0.85);
+                transition: background 0.18s ease;
             }}
-            .aegis-pred-table tr td:first-child {{ border-radius: 8px 0 0 8px; }}
-            .aegis-pred-table tr td:last-child {{ border-radius: 0 8px 8px 0; }}
+            .aegis-pred-table tr:hover td {{
+                background: rgba(99, 179, 237, 0.08);
+            }}
+            .aegis-pred-table tr td:first-child {{ border-radius: 10px 0 0 10px; }}
+            .aegis-pred-table tr td:last-child {{ border-radius: 0 10px 10px 0; }}
             .aegis-telemetry-strip {{
                 display: grid;
                 grid-template-columns: repeat(3, 1fr);
@@ -388,19 +413,24 @@ def inject_futuristic_theme() -> None:
                 border: 1px solid {COLORS["border_strong"]} !important;
             }}
             .stButton > button {{
-                font-weight: 500 !important;
-                font-size: 0.8rem !important;
-                border-radius: 8px !important;
-                border: 1px solid {COLORS["border_strong"]} !important;
-                background: {COLORS["accent_soft"]} !important;
-                color: {COLORS["accent"]} !important;
-                transition: background 0.15s ease, border-color 0.15s ease, transform 0.2s ease;
+                font-weight: 600 !important;
+                font-size: 0.88rem !important;
+                border-radius: 999px !important;
+                border: 1px solid transparent !important;
+                background: linear-gradient(135deg, rgba(99, 179, 237, 0.22), rgba(167, 139, 250, 0.20)) !important;
+                color: {COLORS["text"]} !important;
+                box-shadow: inset 0 0 0 1px rgba(99, 179, 237, 0.10);
+                transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
             }}
             .stButton > button:hover {{
-                background: rgba(99, 179, 237, 0.2) !important;
-                border-color: {COLORS["accent"]} !important;
+                background: linear-gradient(135deg, rgba(99, 179, 237, 0.35), rgba(167, 139, 250, 0.25)) !important;
                 color: {COLORS["text"]} !important;
-                transform: translateY(-2px);
+                transform: translateY(-1px);
+            }}
+            .stDownloadButton > button {{
+                border-radius: 999px !important;
+                background: linear-gradient(135deg, rgba(99, 179, 237, 0.16), rgba(167, 139, 250, 0.16)) !important;
+                color: {COLORS["text"]} !important;
             }}
             [data-testid="stFormSubmitButton"] > button {{
                 background: {COLORS["accent"]} !important;
@@ -409,18 +439,32 @@ def inject_futuristic_theme() -> None:
                 border: none !important;
             }}
             .stTextInput input,
+            .stTextArea textarea,
             .stSelectbox div[data-baseweb="select"] > div,
-            .stMultiSelect div[data-baseweb="select"] > div {{
-                background: rgba(10, 16, 30, 0.85) !important;
-                border-color: {COLORS["border"]} !important;
+            .stMultiSelect div[data-baseweb="select"] > div,
+            .stNumberInput input,
+            .stSlider > div[role="slider"] {{
+                background: rgba(10, 16, 30, 0.92) !important;
+                border-color: rgba(99, 179, 237, 0.18) !important;
                 color: var(--aegis-text) !important;
-                border-radius: 8px !important;
+                border-radius: 12px !important;
+                box-shadow: inset 0 1px 2px rgba(255,255,255,0.04);
+            }}
+            .stTextInput input:focus,
+            .stTextArea textarea:focus,
+            .stSelectbox div[data-baseweb="select"] > div:focus,
+            .stMultiSelect div[data-baseweb="select"] > div:focus {{
+                border-color: {COLORS["accent"]} !important;
+                outline: none !important;
+                box-shadow: 0 0 0 4px rgba(99, 179, 237, 0.12) !important;
             }}
             [data-testid="stDataFrame"] {{
-                border: 1px solid {COLORS["border"]};
-                border-radius: 10px;
+                border: 1px solid rgba(99, 179, 237, 0.12);
+                border-radius: 14px;
                 overflow: hidden;
+                background: rgba(10, 16, 30, 0.9);
             }}
+
             .aegis-topbar {{
                 display: flex;
                 flex-wrap: wrap;
@@ -480,15 +524,16 @@ def inject_futuristic_theme() -> None:
                 background: rgba(251, 113, 133, 0.08);
             }}
             .aegis-panel {{
-                background: {COLORS["bg_panel"]};
-                border: 1px solid {COLORS["border"]};
-                border-radius: 12px;
-                padding: 1rem 1.15rem;
-                margin-bottom: 0.85rem;
+                background: linear-gradient(180deg, rgba(14, 22, 42, 0.94), rgba(9, 14, 28, 0.98));
+                border: 1px solid rgba(99, 179, 237, 0.16);
+                border-radius: 18px;
+                padding: 1.1rem 1.2rem;
+                margin-bottom: 1rem;
+                box-shadow: 0 18px 36px rgba(0, 0, 0, 0.12);
             }}
             .aegis-advice-buy {{
-                border-left: 3px solid {COLORS["success"]};
-                background: rgba(52, 211, 153, 0.06);
+                border-left: 4px solid {COLORS["success"]};
+                background: rgba(52, 211, 153, 0.1);
             }}
             .aegis-advice-sell {{
                 border-left: 3px solid {COLORS["danger"]};
