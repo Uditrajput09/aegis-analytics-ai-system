@@ -37,10 +37,10 @@ Pipeline for intraday/daily OHLCV features, ML forecasts (expected return, calib
    Equivalent: `python ml/train.py --symbols RELIANCE.NS,INFY.NS,TCS.NS`
 3. Start the API (from project root):
   ```bash
-   python -m uvicorn backend.app:app --host 127.0.0.1 --port 8000
+   python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000
   ```
    Windows helper (detects port already in use):
-   If you see **WinError 10048**, port `8000` is already taken — the API may already be running. Check `ht` python -m uvicorn backend.app:app --host 127.0.0.1 --port 8000
+   If you see **WinError 10048**, port `8000` is already taken — the API may already be running. Check `ht` python -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000
    Windows helper:
    If the API uses another host or port, set `API_BASE_URL` (for example `http://127.0.0.1:8000`) before launching Streamlit.
    **Deploy or fix a broken/stale site (Windows):**

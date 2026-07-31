@@ -22,7 +22,7 @@ function Start-IfDown($port, $name, $command) {
     ) -WindowStyle Minimized
 }
 
-Start-IfDown 8000 "API" ".\venv\Scripts\python.exe -m uvicorn backend.app:app --host 127.0.0.1 --port 8000"
+Start-IfDown 8000 "API" ".\venv\Scripts\python.exe -m uvicorn backend.app.main:app --host 127.0.0.1 --port 8000"
 Start-Sleep -Seconds 3
 
 $env:API_BASE_URL = "http://127.0.0.1:8000"

@@ -9,6 +9,13 @@ import plotly.graph_objects as go  # type: ignore
 import requests  # type: ignore
 import streamlit as st  # type: ignore
 
+st.set_page_config(
+    page_title="Aegis Analytics AI — Quantitative Intelligence",
+    page_icon="🛡️",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
 from dashboard.paths import ensure_project_cwd
 from dashboard.theme import (
     COLORS,

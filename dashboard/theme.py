@@ -213,7 +213,7 @@ def inject_futuristic_theme() -> None:
         f"""
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
         <style>
             :root {{
                 --aegis-accent: {COLORS["accent"]};
@@ -238,7 +238,9 @@ def inject_futuristic_theme() -> None:
             .block-container {{
                 padding-top: 1.25rem;
                 padding-bottom: 2rem;
-                max-width: 1280px;
+                max-width: 1600px;
+                padding-left: 2rem;
+                padding-right: 2rem;
             }}
             [data-testid="stSidebar"] > div {{
                 position: relative;
@@ -666,22 +668,31 @@ def inject_futuristic_theme() -> None:
             }}
             .stAlert {{ border-radius: 10px !important; }}
             div[data-testid="stVerticalBlockBorderWrapper"] {{ border-radius: 12px; }}
-            /* Hide Streamlit icon text fallbacks (e.g., keyboard_double_arrow_left) */
-            button[kind="icon"] {{
-                font-size: 0 !important;
-                line-height: 0 !important;
+            /* Material Symbols Font & Icon Fallback Fix (e.g., keyboard_double_arrow_left) */
+            [data-testid="stIconMaterial"],
+            [class*="material-symbols"],
+            .material-symbols-outlined,
+            .material-icons,
+            .material-icons-outlined,
+            [data-testid="stSidebarCollapseButton"] span,
+            [data-testid="stSidebarCollapseButton"] i,
+            button[data-testid="baseButton-headerNoPadding"] span {{
+                font-family: 'Material Symbols Outlined', 'Material Icons' !important;
+                font-weight: normal !important;
+                font-style: normal !important;
+                font-size: 1.25rem !important;
+                line-height: 1 !important;
+                letter-spacing: normal !important;
+                text-transform: none !important;
+                display: inline-block !important;
+                white-space: nowrap !important;
+                word-wrap: normal !important;
+                direction: ltr !important;
+                -webkit-font-smoothing: antialiased !important;
             }}
             button[kind="icon"] svg {{
                 font-size: 1rem !important;
                 line-height: 1rem !important;
-            }}
-            /* Fallback: Hide material icon text in any button */
-            .material-icons,
-            .material-icons-outlined {{
-                font-size: 0 !important;
-                display: inline-block;
-                width: 1.25rem;
-                height: 1.25rem;
             }}
             .material-icons svg,
             .material-icons-outlined svg {{
