@@ -69,12 +69,23 @@ def train_symbol_horizon(
     model_dir: str,
     model_version: str = "mvp_v1",
     conformal_alpha: float = 0.1,
+    use_gpu: bool = False,
+    gpu_platform_id: int = 1,
+    gpu_device_id: int = 0,
 ) -> str:
     X, y_ret, y_up = build_features_and_targets(bars, timeframe=timeframe, horizon=horizon)
     if X.empty:
         raise ValueError(f"No training rows for {symbol} {timeframe} {horizon}")
 
     X_train, y_ret_train, y_up_train, X_cal, y_ret_cal, y_up_cal = _fit_time_splits(X, y_ret, y_up)
+
+    gpu_kwargs = {}
+    if use_gpu:
+        gpu_kwargs = {
+            "device": "gpu",
+            "gpu_platform_id": gpu_platform_id,
+            "gpu_device_id": gpu_device_id,
+        }
 
     # Regression: predict return
     reg = LGBMRegressor(
@@ -84,8 +95,24 @@ def train_symbol_horizon(
         subsample=0.8,
         colsample_bytree=0.8,
         random_state=42,
+        **gpu_kwargs,
     )
-    reg.fit(X_train, y_ret_train)
+    try:
+        reg.fit(X_train, y_ret_train)
+    except Exception as e:
+        if use_gpu:
+            print(f"[train] GPU regressor fit warning/failed ({e}), falling back to CPU...")
+            reg = LGBMRegressor(
+                n_estimators=300,
+                learning_rate=0.05,
+                max_depth=-1,
+                subsample=0.8,
+                colsample_bytree=0.8,
+                random_state=42,
+            )
+            reg.fit(X_train, y_ret_train)
+        else:
+            raise
 
     # Direction: predict up/down
     clf = LGBMClassifier(
@@ -95,8 +122,24 @@ def train_symbol_horizon(
         subsample=0.8,
         colsample_bytree=0.8,
         random_state=42,
+        **gpu_kwargs,
     )
-    clf.fit(X_train, y_up_train)
+    try:
+        clf.fit(X_train, y_up_train)
+    except Exception as e:
+        if use_gpu:
+            print(f"[train] GPU classifier fit warning/failed ({e}), falling back to CPU...")
+            clf = LGBMClassifier(
+                n_estimators=300,
+                learning_rate=0.05,
+                max_depth=-1,
+                subsample=0.8,
+                colsample_bytree=0.8,
+                random_state=42,
+            )
+            clf.fit(X_train, y_up_train)
+        else:
+            raise
 
     # Fit calibration for direction probabilities
     p_raw_cal = clf.predict_proba(X_cal)[:, 1]

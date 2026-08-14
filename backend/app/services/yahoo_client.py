@@ -20,7 +20,13 @@ def _flatten_columns(df: pd.DataFrame) -> pd.DataFrame:
     flat = []
     for col in df.columns:
         if isinstance(col, tuple):
-            flat.append(str(col[-1]).lower())
+            found = None
+            for item in col:
+                s = str(item).lower()
+                if s in {"open", "high", "low", "close", "volume", "adj close"}:
+                    found = s
+                    break
+            flat.append(found if found else str(col[0]).lower())
         else:
             flat.append(str(col).lower())
     out = df.copy()
@@ -62,6 +68,10 @@ def fetch_ohlcv(
     Fetch OHLCV from Yahoo Finance via yfinance.
     Returns a DataFrame indexed by timestamp (may be tz-aware).
     """
+    yf = _import_yfinance()
+    if yf is None:
+        raise RuntimeError("The 'yfinance' package is required to fetch OHLCV data. Install it using 'pip install yfinance'.")
+
     df = pd.DataFrame()
 
     try:
@@ -69,10 +79,6 @@ def fetch_ohlcv(
         df = ticker.history(interval=interval, period=period, auto_adjust=auto_adjust)
     except Exception:
         df = pd.DataFrame()
-
-    yf = _import_yfinance()
-    if yf is None:
-        raise RuntimeError("The 'yfinance' package is required to fetch OHLCV data. Install it using 'pip install yfinance'.")
 
     if df is None or df.empty:
         try:

@@ -34,17 +34,17 @@ def add_time_features(df: pd.DataFrame, *, tz: str = "US/Eastern") -> pd.DataFra
         local = idx
 
     # DatetimeIndex exposes `.hour`, `.minute`, `.dayofweek` as vectorized arrays.
-    # Wrap them as Series to preserve index when building cyclical features.
+    # Wrap them as Series with index=df.index to preserve exact index and timezone when building cyclical features.
     if hasattr(local, "hour") and hasattr(local, "minute") and hasattr(local, "dayofweek"):
-        hour_s = pd.Series(local.hour, index=local)
-        minute_s = pd.Series(local.minute, index=local)
-        dow_s = pd.Series(local.dayofweek, index=local)
+        hour_s = pd.Series(local.hour, index=df.index)
+        minute_s = pd.Series(local.minute, index=df.index)
+        dow_s = pd.Series(local.dayofweek, index=df.index)
     else:
         # Fallback for non-DatetimeIndex inputs.
         tmp_idx = pd.DatetimeIndex(pd.to_datetime(local))
-        hour_s = pd.Series(tmp_idx.hour, index=tmp_idx)
-        minute_s = pd.Series(tmp_idx.minute, index=tmp_idx)
-        dow_s = pd.Series(tmp_idx.dayofweek, index=tmp_idx)
+        hour_s = pd.Series(tmp_idx.hour, index=df.index)
+        minute_s = pd.Series(tmp_idx.minute, index=df.index)
+        dow_s = pd.Series(tmp_idx.dayofweek, index=df.index)
 
     # intraday uses hour/min, daily mostly uses day-of-week
     out = []

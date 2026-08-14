@@ -18,12 +18,18 @@ from ml.training.train_pipeline import train_symbol_horizon
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--symbols", default=None, help="Comma-separated symbols override")
+    parser.add_argument("--use-gpu", action="store_true", default=True, help="Use GPU for model training")
+    parser.add_argument("--no-gpu", dest="use_gpu", action="store_false", help="Disable GPU training")
+    parser.add_argument("--gpu-platform-id", type=int, default=1, help="OpenCL platform ID for GPU")
+    parser.add_argument("--gpu-device-id", type=int, default=0, help="OpenCL device ID for local GPU (NVIDIA RTX 2050)")
     args = parser.parse_args()
 
     settings = load_settings()
     symbols = settings.symbols
     if args.symbols:
         symbols = [s.strip().upper() for s in args.symbols.split(",") if s.strip()]
+
+    print(f"[train] Training target device: {'GPU (Platform ' + str(args.gpu_platform_id) + ', Device ' + str(args.gpu_device_id) + ')' if args.use_gpu else 'CPU'}")
 
     # Intraday training
     for symbol in symbols:
@@ -47,6 +53,9 @@ def main() -> None:
                     bars=intraday_bars,
                     model_dir=settings.model_dir,
                     conformal_alpha=settings.conformal_alpha,
+                    use_gpu=args.use_gpu,
+                    gpu_platform_id=args.gpu_platform_id,
+                    gpu_device_id=args.gpu_device_id,
                 )
                 print(f"[train] saved {path}")
             except Exception as e:
@@ -68,6 +77,9 @@ def main() -> None:
                 bars=daily_bars,
                 model_dir=settings.model_dir,
                 conformal_alpha=settings.conformal_alpha,
+                use_gpu=args.use_gpu,
+                gpu_platform_id=args.gpu_platform_id,
+                gpu_device_id=args.gpu_device_id,
             )
             print(f"[train] saved {path}")
         except Exception as e:
