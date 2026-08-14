@@ -249,3 +249,39 @@ def risk_latest(
         p_return_below_minus_2pct=risk.p_return_below_minus_2pct,
     )
 
+
+from pydantic import BaseModel
+
+
+class AuthRequest(BaseModel):
+    username: str
+    password: str
+
+
+@router.post("/auth/login")
+def auth_login(req: AuthRequest):
+    from dashboard.user_store import authenticate_user, init_user_store, get_or_create_demo_user
+
+    init_user_store()
+    get_or_create_demo_user()
+    user = authenticate_user(req.username, req.password)
+    if user is None:
+        raise HTTPException(status_code=401, detail="Invalid username or password.")
+    return {
+        "ok": True,
+        "user": user,
+        "token": f"aegis_token_{user['id']}_{int(datetime.now(timezone.utc).timestamp())}",
+    }
+
+
+@router.post("/auth/register")
+def auth_register(req: AuthRequest):
+    from dashboard.user_store import register_user, init_user_store
+
+    init_user_store()
+    ok, msg = register_user(req.username, req.password)
+    if not ok:
+        raise HTTPException(status_code=400, detail=msg)
+    return {"ok": True, "message": msg}
+
+

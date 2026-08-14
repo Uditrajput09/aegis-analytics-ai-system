@@ -14,8 +14,9 @@ function Stop-Port($port) {
     Start-Sleep -Seconds 1
 }
 
-Write-Host "=== Restarting Aegis (API + dashboard) ==="
+Write-Host "=== Restarting Aegis (API + React Frontend + Streamlit Dashboard) ==="
 Stop-Port 8000
+Stop-Port 3000
 Stop-Port 8501
 Stop-Port 8502
 

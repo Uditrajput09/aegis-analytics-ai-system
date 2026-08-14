@@ -27,6 +27,11 @@ dist/
 *.pyc
 *.pyo
 *.pyd
+__pycache__/
+
+# Database files
+data/*.db
+data/*.sqlite
 
 # macOS
 .DS_Store
