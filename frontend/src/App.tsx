@@ -7,6 +7,8 @@ import { InsightsPage } from './pages/InsightsPage';
 import { MarketAnalyticsPage } from './pages/MarketAnalyticsPage';
 import { ForecastsPage } from './pages/ForecastsPage';
 import { RiskAnalyticsPage } from './pages/RiskAnalyticsPage';
+import { BlockchainAuditPage } from './pages/BlockchainAuditPage';
+import { CryptoDefiPage } from './pages/CryptoDefiPage';
 import { WatchlistPage } from './pages/WatchlistPage';
 import { AIAnalystPage } from './pages/AIAnalystPage';
 import { ReportsPage } from './pages/ReportsPage';
@@ -75,6 +77,10 @@ export const App: React.FC = () => {
         return <ForecastsPage symbol={selectedSymbol} />;
       case 'risk':
         return <RiskAnalyticsPage symbol={selectedSymbol} />;
+      case 'blockchain':
+        return <BlockchainAuditPage symbol={selectedSymbol} />;
+      case 'crypto':
+        return <CryptoDefiPage />;
       case 'watchlist':
         return (
           <WatchlistPage

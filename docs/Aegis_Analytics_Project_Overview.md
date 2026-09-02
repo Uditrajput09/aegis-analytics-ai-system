@@ -1,6 +1,6 @@
 # Aegis Analytics AI — Complete System Documentation
 
-**Aegis Analytics AI** is an end-to-end quantitative intelligence system and machine learning platform. It ingests historical and live market OHLCV (Open, High, Low, Close, Volume) price data, builds statistical and technical features, trains machine learning models to forecast future asset returns and directions, quantifies downside risks using conformal prediction intervals, and exposes this data via a **FastAPI backend** and a **Streamlit visual dashboard**.
+**Aegis Analytics AI** is an enterprise-grade quantitative market intelligence, machine learning forecasting, and decentralized cryptographic audit platform. It ingests multi-asset price and market data (traditional equities, crypto spot markets, and decentralized finance protocols), builds statistical and technical features, trains dual-head machine learning models to forecast asset returns and directions, quantifies downside risks using conformal prediction intervals, cryptographically anchors predictions on EVM blockchains, and exposes interactive insights via a **React 19 single-page application**, a **Streamlit visual dashboard**, and a high-performance **FastAPI REST backend**.
 
 ---
 
@@ -8,23 +8,41 @@
 
 ```mermaid
 flowchart TD
-    subgraph Data & ML Layer
-        YF[Yahoo Finance API] -->|yfinance| FE[Feature Builder]
-        FE -->|Rolling & Cyclical Features| ML[LightGBM Models]
-        ML -->|Point Return & Direction| Calib[Isotonic Calibrator & Conformal Intervals]
-        Calib -->|Trained Artifacts .joblib| ModelDir[(models/)]
+    subgraph DataIngestionLayer ["1. Ingestion & Storage Layer"]
+        YF["Yahoo Finance API\n(Equities)"] -->|yfinance| STORE["Storage Manager\n(storage.py)"]
+        BN["Binance API\n(Spot Crypto)"] -->|python-binance| STORE
+        CG["CoinGecko API\n(Market Data)"] -->|pycoingecko| STORE
+        DL["DeFiLlama API\n(DeFi TVL)"] -->|HTTPX| STORE
+        TG["The Graph Subgraphs\n(Uniswap V3)"] -->|GraphQL| STORE
+        STORE <--> PG[("PostgreSQL 16 + TimescaleDB\n(Hypertables & Alembic Migrations)")]
+        STORE <--> SQLITE[("SQLite Database Fallback\n(data/app.db)")]
     end
 
-    subgraph Storage & Backend API
-        DB[(SQLite DB: data/app.db)] <--> Storage[SQLAlchemy Storage Service]
-        ModelDir -->|Load Artifacts| Predictor[Predictor Engine]
-        Storage <--> Predictor
-        Predictor <--> FastAPI[FastAPI App backend/app/main.py]
+    subgraph MLLayer ["2. Feature Engineering & ML Pipeline"]
+        STORE --> FE["Feature Builder Engine"]
+        FE -->|X, y_return, y_up| ML["Dual-Head LightGBM\n(Regressor + Classifier)"]
+        ML --> CALIB["Isotonic Calibrator & Conformal Intervals"]
+        CALIB --> MODEL_DIR[("Model Artifacts Store\n(models/*.joblib)")]
     end
 
-    subgraph Frontend & User Layer
-        FastAPI <-->|HTTP JSON REST| Dash[Streamlit Dashboard dashboard/app.py]
-        Dash <--> AI[AI Assistant & User Store]
+    subgraph APILayer ["3. FastAPI Backend Core"]
+        MODEL_DIR --> PRED["Predictor Engine (predictor.py)"]
+        STORE <--> PRED
+        PRED <--> RISK["Risk Engine (risk_engine.py)"]
+        PRED & RISK <--> FASTAPI["FastAPI REST App (backend/app/main.py)"]
+    end
+
+    subgraph BlockchainLayer ["4. Web3 & Smart Contracts"]
+        FASTAPI <--> ANCHOR_SVC["Anchor Service (anchor_service.py)"]
+        FASTAPI <--> ORACLE_SVC["Oracle Service (oracle_service.py)"]
+        ANCHOR_SVC & ORACLE_SVC <--> CHAIN_CLI["Chain Client (Web3.py)"]
+        CHAIN_CLI <--> PA_CONTRACT["PredictionAudit.sol (EVM)"]
+        CHAIN_CLI <--> PRC_CONTRACT["PriceAnchor.sol (EVM)"]
+    end
+
+    subgraph PresentationLayer ["5. Presentation & UI Layer"]
+        FASTAPI <-->|REST JSON| REACT_APP["React 19 Web App (frontend/)\nTypeScript + Vite + Tailwind v4 + Recharts\n12 Dedicated Pages"]
+        FASTAPI <-->|REST JSON| DASH["Streamlit Dashboard (dashboard/app.py)\nPlotly Charts & AI Assistant"]
     end
 ```
 
@@ -34,139 +52,188 @@ flowchart TD
 
 | Path | Description |
 | :--- | :--- |
-| `README.md` | High-level project documentation, quickstart steps, and API endpoint tables. |
-| `requirements.txt` | Python dependencies (`fastapi`, `streamlit`, `lightgbm`, `scikit-learn`, `yfinance`, `sqlalchemy`, `plotly`, `pydantic`). |
-| `backend/app/main.py` | FastAPI app entry point. Initializes SQLite DB and mounts API routes. |
-| `backend/app/core/config.py` | Environment configuration and default settings (`SYMBOLS`, `DATA_DB_PATH`, `MODEL_DIR`, `CONFORMAL_ALPHA`, etc.). |
-| `backend/app/api/routes.py` | REST API route definitions (`/health`, `/meta/symbols`, `/bars/recent`, `/predictions/latest`, `/risk/latest`). |
-| `backend/app/features/feature_builder.py` | Technical price return features and cyclical time features (hour, minute, day-of-week sine/cosine transformations). |
-| `backend/app/services/predictor.py` | Inference pipeline that loads trained model `.joblib` artifacts and computes real-time predictions. |
-| `backend/app/services/storage.py` | Database ORM and persistence helper functions using SQLAlchemy and SQLite. |
-| `backend/app/services/yahoo_client.py` | Yahoo Finance market data fetcher with retries and rate limit handling. |
-| `backend/app/risk/risk_engine.py` | Risk analysis engine evaluating downside risk probabilities from prediction intervals. |
-| `ml/train.py` | CLI training script to train models across configured symbols for 5m, 15m, 60m, and 1d horizons. |
-| `ml/training/train_pipeline.py` | Training logic using LightGBM regressors and classifiers, split-by-time calibration, and saving model artifacts. |
-| `ml/confidence/calibration.py` | Isotonic regression calibrator mapping raw classification probabilities to reliable directional probabilities (`p_up`). |
-| `ml/confidence/conformal_intervals.py` | Conformal prediction implementation generating statistical prediction bounds at specified confidence levels (e.g. $\alpha=0.10$ for 90% confidence). |
-| `dashboard/app.py` | Modern Streamlit Web UI featuring interactive candlestick charts, forecast telemetry, risk metrics, and horizon comparisons. |
-| `dashboard/theme.py` | Custom UI design system, styling, glassmorphism cards, and Plotly theme overrides. |
-| `dashboard/user_store.py` | Local user authentication, watchlists, user preferences, and prediction history persistence. |
-| `dashboard/assistant.py` | AI assistant tab integrated into the dashboard for user queries. |
+| `README.md` | Master project README, high-level architecture, quickstart commands, and API endpoint tables. |
+| `PROJECT.md` | Definitive technical specification and engineering blueprint. |
+| `architecture.md` | Visual architectural diagrams, sequence workflows, and component interaction graphs. |
+| `brain.md` | Project knowledge base, directory reference, database schemas, and developer rules. |
+| `requirements.txt` | Python dependencies (`fastapi`, `streamlit`, `lightgbm`, `scikit-learn`, `yfinance`, `sqlalchemy`, `psycopg2-binary`, `alembic`, `web3`, `python-binance`, `pycoingecko`, `httpx`, `plotly`, `pydantic`). |
+| `hardhat.config.js` | Hardhat EVM network configuration for Solidity 0.8.20 contracts (Sepolia, Polygon, Localhost). |
+| `docker-compose.yml` | Multi-container setup for PostgreSQL 16 + TimescaleDB, FastAPI backend, and Streamlit dashboard. |
+| `backend/app/main.py` | FastAPI application entry point, lifespan initialization, and CORS middleware. |
+| `backend/app/core/config.py` | Configuration settings dataclass and environment variable resolver. |
+| `backend/app/core/types.py` | Pydantic data schemas for API requests, responses, and validation. |
+| `backend/app/api/routes.py` | Complete REST API endpoint routing (market data, ML predictions, risk, auth, blockchain, oracle, crypto, defi). |
+| `backend/app/api/index.py` | Route catalog index helper. |
+| `backend/app/db/migrations/` | Alembic database migration scripts (`001_init_bars_predictions.py`, `002_add_blockchain_tables.py`). |
+| `backend/app/features/feature_builder.py` | Vectorized technical return features, rolling statistical moments, and continuous cyclical time encodings. |
+| `backend/app/services/predictor.py` | In-memory model artifact loader and real-time inference pipeline. |
+| `backend/app/services/storage.py` | SQLAlchemy ORM models (`BarORM`, `PredictionORM`, `BlockchainAnchorORM`) and database CRUD methods. |
+| `backend/app/services/yahoo_client.py` | Yahoo Finance market data fetcher with exponential retries. |
+| `backend/app/services/crypto_client.py` | Binance REST/WebSocket client and CoinGecko market price fetcher. |
+| `backend/app/services/defi_client.py` | DeFiLlama protocol TVL client and The Graph Uniswap V3 liquidity pool fetcher. |
+| `backend/app/blockchain/anchor_service.py` | Cryptographic SHA-256 price/prediction hashing and on-chain transaction anchoring. |
+| `backend/app/blockchain/chain_client.py` | Web3.py RPC node connection manager, wallet signing, and multi-network switcher. |
+| `backend/app/blockchain/oracle_service.py` | Chainlink decentralized oracle price client with off-chain fallbacks. |
+| `backend/app/blockchain/event_listener.py` | On-chain contract event filter and confirmation tracker. |
+| `backend/app/risk/risk_engine.py` | Downside tail-risk probability calculator evaluating prediction bounds. |
+| `contracts/PredictionAudit.sol` | Solidity smart contract for immutable on-chain forecast anchoring. |
+| `contracts/PriceAnchor.sol` | Solidity smart contract for immutable on-chain price bar anchoring. |
+| `frontend/` | React 19 + TypeScript 6 + Vite 8 + Tailwind CSS v4 + Recharts 3 single-page web application. |
+| `frontend/src/pages/` | 12 dedicated application pages (Overview, Market Analytics, Forecasts, Risk, Crypto/DeFi, AI Analyst, Blockchain Audit, etc.). |
+| `frontend/src/layouts/AppLayout.tsx` | Responsive navigation sidebar shell and network status monitor. |
+| `frontend/src/services/api.ts` | Typed frontend API gateway targeting FastAPI backend endpoints. |
+| `ml/train.py` | Multi-symbol, multi-horizon model training CLI script. |
+| `ml/training/train_pipeline.py` | Core training pipeline with chronological train/calibration splits and joblib exporter. |
+| `ml/confidence/calibration.py` | Isotonic probability calibration for directional classification outputs. |
+| `ml/confidence/conformal_intervals.py` | Conformal residual quantile estimation for predictive uncertainty bounds. |
+| `dashboard/app.py` | Streamlit financial dashboard with dark glassmorphic styling and Plotly charts. |
+| `dashboard/assistant.py` | Embedded AI Assistant module for quantitative market queries. |
+| `dashboard/theme.py` | Custom CSS design system tokens, layout styling, and Plotly theme configurations. |
+| `dashboard/user_store.py` | SQLite authentication, password hashing, and user watchlist persistence. |
 | `scripts/` | PowerShell operational scripts (`start_api.ps1`, `start_dashboard.ps1`, `restart.ps1`, `health_check.ps1`, `deploy.ps1`, `update_repo.ps1`). |
 
 ---
 
-## 🛠️ 3. Technology Stack
+## 🛠️ 3. Technology Stack Matrix
 
-| Layer | Technologies & Tools |
+| Layer | Technologies & Libraries |
 | :--- | :--- |
-| **Runtime** | Python 3.10+ |
-| **Backend API** | FastAPI, Uvicorn, Pydantic, SQLAlchemy |
-| **Machine Learning** | LightGBM (`LGBMRegressor`, `LGBMClassifier`), Scikit-Learn (`IsotonicRegression`), NumPy, Pandas |
-| **Market Data** | Yahoo Finance API (`yfinance`) |
-| **Frontend / Dashboard** | Streamlit, Plotly, Custom HTML/CSS design system |
-| **Storage** | SQLite (`data/app.db` for API market data; `data/dashboard_users.db` for user accounts) |
-| **Serialization** | Joblib (`.joblib` model artifacts) |
+| **Frontend SPA** | React 19 (`^19.2.8`), TypeScript 6 (`~6.0.2`), Vite 8 (`^8.2.0`), Tailwind CSS v4 (`^4.3.3`), Recharts (`^3.10.1`), Lucide React (`^1.31.0`), Oxlint (`^1.75.0`) |
+| **Backend REST API** | FastAPI, Uvicorn, Pydantic v2, Pydantic-Settings, HTTPX, Tenacity, Python 3.10+ |
+| **Machine Learning** | LightGBM (`LGBMRegressor`, `LGBMClassifier`), Scikit-Learn (`IsotonicRegression`), Pandas, NumPy, Joblib |
+| **Smart Contracts & Web3** | Solidity 0.8.20, Hardhat, Web3.py (`>=6.15.0`), Eth-Account (`>=0.10.0`), Hexbytes, Sepolia, Polygon |
+| **Database & Persistence** | PostgreSQL 16 + TimescaleDB (Hypertables), Alembic (`>=1.13.0`), SQLAlchemy 2.0, SQLite (Local Dev Fallback) |
+| **Market Data Providers** | Yahoo Finance (`yfinance`), Binance (`python-binance`), CoinGecko (`pycoingecko`), DeFiLlama, The Graph |
+| **Alternative Dashboard** | Streamlit, Plotly |
+| **DevOps & Orchestration** | Docker Compose (`docker-compose.yml`), PowerShell Automation Scripts (`scripts/`) |
 
 ---
 
 ## 💡 4. Deep-Dive Component Architecture
 
 ### A. Data Ingestion & Storage
-- **Market Data Engine**: Market data is retrieved using `backend/app/services/yahoo_client.py`.
-- **SQLite Database**: Bars and predictions are stored in `data/app.db` managed by `backend/app/services/storage.py`. Duplicate bars are handled smoothly using SQLite `ON CONFLICT DO UPDATE` upserts.
+- **Equities Ingestion**: `backend/app/services/yahoo_client.py` retrieves historical and real-time OHLCV bars with automatic duplicate stripping and UTC timezone normalization.
+- **Crypto Ingestion**: `backend/app/services/crypto_client.py` connects to Binance spot endpoints and CoinGecko API for cryptocurrency pairs (`BTCUSDT`, `ETHUSDT`, `SOLUSDT`, etc.).
+- **DeFi Analytics**: `backend/app/services/defi_client.py` integrates DeFiLlama for protocol TVL metrics and The Graph for Uniswap V3 liquidity pool data.
+- **Storage Engine**: `backend/app/services/storage.py` manages connections to PostgreSQL 16 / TimescaleDB with automatic SQLite fallback (`data/app.db`).
 
 ### B. Feature Engineering (`backend/app/features/feature_builder.py`)
-For every bar timestamp $t$, the pipeline constructs:
-- **Price Returns**: 1-bar, 2-bar, 3-bar, 5-bar percent changes ($\Delta P / P$).
-- **Rolling Statistics**: Rolling return mean & standard deviation across multiple windows (5, 15, 30 bars for 1m intraday; 5, 10, 20 bars for 1d daily).
-- **Moving Average Trends**: Ratio of price to rolling moving average ($P / MA - 1$).
-- **Cyclical Time Encoding**: Sine and cosine features for `hour`, `minute`, and `dayofweek` to capture daily/weekly seasonalities:
-  $$\sin\left(\frac{2\pi \cdot t}{\text{period}}\right), \quad \cos\left(\frac{2\pi \cdot t}{\text{period}}\right)$$
+For each price bar timestamp $t$, the engine computes:
+- **Price Returns**: 1-bar, 2-bar, 3-bar, and 5-bar percentage returns ($\text{ret}_k = \frac{P_t - P_{t-k}}{P_{t-k}}$).
+- **Rolling Statistics**: Rolling mean $\mu_{\text{ret}}$ and standard deviation $\sigma_{\text{ret}}$ over windows (5, 15, 30 bars for 1m intraday; 5, 10, 20 bars for 1d daily).
+- **Moving Average Distances**: Distance of current price to rolling moving average ($\text{trend\_ma}_w = \frac{P_t}{MA_w(t)} - 1$).
+- **Cyclical Time Encoding**: Sine and cosine projections for `hour` (period 24), `minute` (period 60), and `dayofweek` (period 7).
 
 ### C. Machine Learning Pipeline (`ml/training/train_pipeline.py`)
-For each symbol and prediction horizon (5m, 15m, 60m, 1d):
+For each symbol and forecast horizon (`5m`, `15m`, `60m`, `1d`):
 1. **Target Construction**:
-   - $y_{\text{return}} = \frac{P_{t+k} - P_t}{P_t}$
-   - $y_{\text{up}} = \mathbb{I}(y_{\text{return}} > 0)$
-2. **Models Trained**:
-   - `LGBMRegressor`: Point prediction of future expected return.
-   - `LGBMClassifier`: Binary prediction of upward vs. downward direction.
-3. **Probability Calibration**: Uses `IsotonicRegression` on calibration split data (`ml/confidence/calibration.py`) to convert raw tree probabilities into true direction probability $p_{\text{up}}$.
-4. **Conformal Prediction Intervals**: Computes residual bounds $q = \text{Quantile}(|y_{\text{true}} - \hat{y}|, 1 - \alpha)$ (`ml/confidence/conformal_intervals.py`) guaranteeing $(1-\alpha)$ coverage confidence bounds:
-   $$\text{Interval} = [\hat{y} - q, \, \hat{y} + q]$$
-5. **Artifact Storage**: Serializes trained models, calibrator, and conformal parameters to `models/<SYMBOL>_<TIMEFRAME>_<HORIZON>_mvp_v1.joblib`.
+   - Continuous return target: $y_{\text{return}} = \frac{P_{t+k} - P_t}{P_t}$
+   - Binary direction target: $y_{\text{up}} = \mathbb{I}(y_{\text{return}} > 0)$
+2. **Model Training**:
+   - `LGBMRegressor`: Fits continuous expected return $\hat{y}_{\text{return}}$.
+   - `LGBMClassifier`: Fits raw directional probability $p_{\text{raw}}$.
+3. **Probability Calibration**: Uses `IsotonicRegression` on calibration data (`ml/confidence/calibration.py`) to output calibrated directional probability $p_{\text{up}}$.
+4. **Conformal Prediction Intervals**: Computes residual bounds $q_{1-\alpha} = \text{Quantile}(|y_{\text{true}} - \hat{y}|, 1 - \alpha)$ (`ml/confidence/conformal_intervals.py`) guaranteeing $(1-\alpha)$ coverage confidence bounds:
+   $$\text{Interval} = [\hat{y} - q_{1-\alpha}, \; \hat{y} + q_{1-\alpha}]$$
+5. **Artifact Persistence**: Serializes trained components into `models/<SYMBOL>_<TIMEFRAME>_<HORIZON>_mvp_v1.joblib`.
 
-### D. REST API Server (`backend/app/api/routes.py`)
-Powered by FastAPI, running on `http://127.0.0.1:8000`:
-- **`GET /health`**: Health check.
-- **`GET /meta/symbols`**: List of trained tickers available on disk.
-- **`GET /bars/recent`**: Fetches stored OHLCV bars (or pulls on-demand from Yahoo Finance if DB is empty).
-- **`GET /predictions/latest`**: Returns latest expected return, expected target price, $p_{\text{up}}$ confidence, and conformal lower/upper bounds.
-- **`GET /risk/latest`**: Computes downside risk probabilities (probability of return drop below -1% or -2%) derived from conformal bounds.
+### D. Blockchain & Smart Contract Audit Layer (`backend/app/blockchain/`)
+- **Price Anchoring**: Generates SHA-256 state hashes of OHLCV bars and records them via `PriceAnchor.sol`.
+- **Prediction Auditing**: Anchors model forecasts (expected return, target price, conformal bounds) via `PredictionAudit.sol` before price discovery occurs.
+- **Oracle Feeds**: Integrates Chainlink AggregatorV3 contracts for decentralized asset pricing.
 
-### E. Interactive Streamlit Dashboard (`dashboard/app.py`)
+### E. REST API Server (`backend/app/api/routes.py`)
+High-throughput FastAPI server running on `http://127.0.0.1:8000`:
+- **Market Data**: `GET /bars/recent`, `GET /crypto/bars/recent`, `GET /crypto/symbols`
+- **ML Forecasts**: `GET /predictions/latest`, `GET /risk/latest`, `GET /meta/symbols`
+- **DeFi Metrics**: `GET /defi/protocols`, `GET /defi/tvl/{protocol}`, `GET /defi/global`, `GET /defi/uniswap/pools`
+- **Blockchain & Oracles**: `GET /blockchain/status`, `GET /blockchain/anchors/{symbol}`, `GET /blockchain/verify/{tx_hash}`, `POST /blockchain/anchor-prediction`, `GET /oracle/prices/{pair}`
+- **Authentication**: `POST /auth/login`, `POST /auth/register`
+
+### F. React 19 Frontend Web Application (`frontend/`)
+Running on `http://localhost:5173`:
+- **12 Dedicated Pages**: `Overview`, `MarketAnalytics`, `Forecasts`, `RiskAnalytics`, `CryptoDefi`, `AIAnalyst`, `BlockchainAudit`, `Insights`, `Reports`, `Watchlist`, `Settings`, `Login`.
+- **Design System**: Glassmorphic dark styling, Tailwind CSS v4, dynamic Recharts 3 data visualizations, Lucide React iconography.
+
+### G. Streamlit Visual Dashboard (`dashboard/app.py`)
 Running on `http://localhost:8501`:
-- **Market Dashboard**: Candlestick / Line price charts with technical moving averages.
-- **Forecast Telemetry**: Expected return percentage, target price, directional $p_{\text{up}}$ gauge, and conformal interval range.
-- **Risk Panel & Trade Advice**: Quantitative advisory logic classifying signals into *Buy*, *Hold*, *Cautious Hold*, or *Sell / Reduce*.
-- **Horizon Comparison**: Compares 5m, 15m, 60m, and 1d forecasts simultaneously.
-- **User Watchlist & History**: Saves user preferences and historical prediction logs using SQLite (`dashboard/user_store.py`).
+- Plotly interactive candlestick charts, multi-horizon comparison cards, automated trading advice rules (*Buy*, *Hold*, *Sell/Reduce*), user authentication store, and embedded AI Assistant.
 
 ---
 
 ## ⚙️ 5. Configuration & Environment Variables
 
-| Variable | Role | Default |
+| Variable | Role | Default Value |
 | :--- | :--- | :--- |
-| `SYMBOLS` | Comma-separated tickers to train and serve | `RELIANCE.NS,INFY.NS,TCS.NS` |
-| `DATA_DB_PATH` | Path to SQLite database file | `data/app.db` |
-| `MODEL_DIR` | Directory containing `.joblib` model artifacts | `models` |
+| `SYMBOLS` | Default equity ticker list | `RELIANCE.NS,INFY.NS,TCS.NS` |
+| `DATABASE_URL` | PostgreSQL connection URL | `sqlite:///data/app.db` |
+| `DATA_DB_PATH` | Fallback SQLite database path | `data/app.db` |
+| `MODEL_DIR` | Directory containing `.joblib` model files | `models` |
 | `INTRADAY_INTERVAL` | Yahoo interval for intraday bars | `1m` |
 | `INTRADAY_LOOKBACK_DAYS` | Intraday history lookback window in days | `7` |
-| `DAILY_HORIZON_DAYS` | Daily horizon label | `1` |
+| `DAILY_HORIZON_DAYS` | Daily horizon label in days | `1` |
 | `CONFORMAL_ALPHA` | Miscoverage alpha for conformal intervals | `0.1` (90% confidence) |
-| `API_BASE_URL` | Base URL used by dashboard to call API | `http://127.0.0.1:8000` |
+| `BLOCKCHAIN_ENABLED` | Feature flag for Web3 on-chain anchoring | `false` |
+| `CHAIN_RPC_URL` | EVM RPC endpoint URL | `""` |
+| `CHAIN_ID` | EVM Chain ID | `11155111` (Sepolia) |
+| `WALLET_PRIVATE_KEY` | Transaction signing wallet private key | `""` |
+| `PRICE_ANCHOR_CONTRACT` | Address of `PriceAnchor.sol` | `""` |
+| `PREDICTION_AUDIT_CONTRACT` | Address of `PredictionAudit.sol` | `""` |
+| `BINANCE_API_KEY` | Binance API key | `""` |
+| `COINGECKO_API_KEY` | CoinGecko API key | `""` |
 
 ---
 
-## 🚀 6. How to Run & Operational Workflows
+## 🚀 6. Operational Workflows & CLI Commands
 
 ### Step 1: Install Dependencies
 ```powershell
+# Python backend & ML dependencies
 pip install -r requirements.txt
+
+# React frontend dependencies
+cd frontend
+npm install
+cd ..
 ```
 
 ### Step 2: Train Machine Learning Models
-Train models for specified symbols before launching the API:
 ```powershell
-python -m ml.train --symbols RELIANCE.NS,INFY.NS,TCS.NS
+python -m ml.train --symbols RELIANCE.NS,INFY.NS,TCS.NS,AAPL,MSFT
 ```
 
 ### Step 3: Launch Services
-Use the helper PowerShell scripts located in `scripts/`:
 
-- **Start API Backend**:
+- **FastAPI Backend Server** (`http://127.0.0.1:8000`):
   ```powershell
   .\scripts\start_api.ps1
   ```
-  *(API running on http://127.0.0.1:8000)*
 
-- **Start Streamlit Dashboard**:
+- **React 19 Web Application** (`http://localhost:5173`):
+  ```powershell
+  cd frontend
+  npm run dev
+  ```
+
+- **Streamlit Dashboard** (`http://localhost:8501`):
   ```powershell
   .\scripts\start_dashboard.ps1
   ```
-  *(Dashboard running on http://localhost:8501)*
 
-- **Restart / Reset Broken Services**:
+- **Docker Compose (Full Multi-Container Stack)**:
   ```powershell
-  .\scripts\restart.ps1
+  docker-compose up -d
   ```
 
-- **Run System Health Diagnostics**:
+- **Run Health Diagnostics**:
   ```powershell
   .\scripts\health_check.ps1
   ```
 
+- **Restart / Reset Processes**:
+  ```powershell
+  .\scripts\restart.ps1
+  ```
+
 ---
-*Documentation generated for project_type_02 — Aegis Analytics AI System.*
+*Complete System Documentation — Aegis Analytics AI System.*

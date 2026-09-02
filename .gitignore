@@ -35,3 +35,6 @@ data/*.sqlite
 
 # macOS
 .DS_Store
+
+# Graphify internal cache
+graphify-out/cache/

@@ -553,8 +553,8 @@ def main():
         downside_risk=float(risk["p_return_below_minus_2pct"]),
     )
 
-    tab_markets, tab_forecast, tab_risk, tab_account, tab_data = st.tabs(
-        ["Markets", "Forecast", "Risk", "Account", "Data"]
+    tab_markets, tab_forecast, tab_risk, tab_blockchain, tab_crypto, tab_account, tab_data = st.tabs(
+        ["Markets", "Forecast", "Risk", "⛓️ Blockchain Audit", "🌐 Crypto & DeFi", "Account", "Data"]
     )
 
     with tab_markets:
@@ -730,6 +730,103 @@ def main():
                 width="stretch",
             )
             render_horizon_comparison_table(horizon_rows, current_horizon=horizon)
+
+    with tab_blockchain:
+        st.markdown("### ⛓️ Blockchain Immutability Audit")
+        st.caption("Tamper-proof prediction snapshots and on-chain oracle verification anchored via Smart Contracts.")
+
+        bc_col1, bc_col2 = st.columns([1.2, 1], gap="medium")
+        with bc_col1:
+            try:
+                oracle_info = get_json(f"/oracle/prices/{symbol}", {})
+                st.markdown("##### On-Chain Oracle Snapshot (Chainlink)")
+                c1, c2, c3 = st.columns(3)
+                c1.metric("Oracle Price", f"${float(oracle_info.get('price_usd', 0.0)):,.2f}")
+                c2.metric("Source", str(oracle_info.get("source", "N/A")))
+                c3.metric("Round ID", str(oracle_info.get("round_id", "N/A")))
+            except Exception as e:
+                st.warning(f"Could not load oracle info: {e}")
+
+            if st.button("⛓️ Anchor Latest Prediction On-Chain", type="primary", use_container_width=True):
+                try:
+                    anchor_res = requests.post(
+                        f"{API_BASE}/blockchain/anchor-prediction",
+                        params={"symbol": symbol, "horizon": horizon, "timeframe": timeframe},
+                        timeout=15,
+                    )
+                    if anchor_res.status_code == 200:
+                        st.success(f"Anchored on-chain! Tx: `{anchor_res.json().get('tx_hash')}`")
+                    else:
+                        st.error(f"Anchoring failed: {anchor_res.text}")
+                except Exception as err:
+                    st.error(f"Error anchoring prediction: {err}")
+
+        with bc_col2:
+            st.markdown("##### Network Configuration")
+            st.info("Chain: Sepolia Testnet (Chain ID: 11155111) | Polygon Mainnet Ready")
+            st.caption("Contracts: `PriceAnchor.sol` & `PredictionAudit.sol`")
+
+        st.divider()
+        st.markdown(f"##### On-Chain Anchor History for `{symbol}`")
+        try:
+            anchor_payload = get_json(f"/blockchain/anchors/{symbol}", {"limit": 20})
+            anchors_list = anchor_payload.get("anchors", [])
+            if anchors_list:
+                adf = pd.DataFrame(anchors_list)
+                st.dataframe(
+                    adf[["anchor_type", "data_hash", "tx_hash", "block_number", "created_at"]],
+                    use_container_width=True,
+                )
+            else:
+                st.info("No on-chain anchors found for this symbol yet. Click the button above to anchor.")
+        except Exception as e:
+            st.error(f"Failed to fetch anchor history: {e}")
+
+    with tab_crypto:
+        st.markdown("### 🌐 Crypto & DeFi Intelligence")
+        st.caption("Real-time cryptocurrency market data and top DeFi protocol Total Value Locked (TVL).")
+
+        cr_left, cr_right = st.columns([1.5, 1], gap="medium")
+        with cr_left:
+            c_pair = st.selectbox("Crypto Pair", ["BTCUSDT", "ETHUSDT", "SOLUSDT", "MATICUSDT"], index=0)
+            try:
+                c_data = get_json("/crypto/bars/recent", {"symbol": c_pair, "interval": "1m", "limit": 150})
+                cdf = pd.DataFrame(c_data.get("bars", []))
+                if not cdf.empty:
+                    cdf["ts_utc"] = pd.to_datetime(cdf["ts_utc"])
+                    fig_c = go.Figure(
+                        data=[
+                            go.Candlestick(
+                                x=cdf["ts_utc"],
+                                open=cdf["open"],
+                                high=cdf["high"],
+                                low=cdf["low"],
+                                close=cdf["close"],
+                                name=c_pair,
+                            )
+                        ]
+                    )
+                    apply_plotly_theme(fig_c, height=380, title=f"{c_pair} · 1m Candles")
+                    st.plotly_chart(fig_c, width="stretch")
+                else:
+                    st.warning("No crypto market data returned.")
+            except Exception as e:
+                st.error(f"Failed to fetch crypto bars: {e}")
+
+        with cr_right:
+            st.markdown("##### Top DeFi Protocols by TVL (DeFiLlama)")
+            try:
+                defi_data = get_json("/defi/top", {"limit": 10})
+                protocols = defi_data.get("protocols", [])
+                if protocols:
+                    d_df = pd.DataFrame(protocols)
+                    d_df["tvl_formatted"] = d_df["tvl"].apply(lambda v: f"${v/1e9:.2f}B" if v and v > 1e9 else f"${(v or 0)/1e6:.1f}M")
+                    st.dataframe(
+                        d_df[["name", "symbol", "chain", "category", "tvl_formatted", "change_1d"]],
+                        use_container_width=True,
+                    )
+            except Exception as e:
+                st.error(f"Failed to fetch DeFi analytics: {e}")
 
     with tab_account:
         left, right = st.columns([1, 1.4], gap="medium")

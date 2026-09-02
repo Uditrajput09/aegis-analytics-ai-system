@@ -101,3 +101,54 @@ export interface AIChatMessage {
     advice?: string;
   };
 }
+
+export interface BlockchainAnchor {
+  id: number;
+  anchor_type: 'price' | 'prediction';
+  symbol: string;
+  horizon?: string;
+  ref_ts_utc?: string;
+  data_hash: string;
+  tx_hash: string;
+  block_number: number;
+  chain_id: number;
+  gas_used?: number;
+  created_at: string;
+}
+
+export interface OraclePriceResponse {
+  symbol: string;
+  price_usd: number;
+  round_id?: number;
+  block_ts: string;
+  source: string;
+}
+
+export interface CryptoBar {
+  symbol: string;
+  interval: string;
+  ts_utc: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume: number;
+}
+
+export interface CryptoBarsResponse {
+  symbol: string;
+  interval: string;
+  count: number;
+  bars: CryptoBar[];
+}
+
+export interface DefiProtocol {
+  name: string;
+  symbol: string;
+  chain: string;
+  category: string;
+  tvl: number;
+  change_1d?: number;
+  change_7d?: number;
+}
+

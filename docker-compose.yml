@@ -1,0 +1,67 @@
+version: "3.9"
+
+services:
+  # ── PostgreSQL + TimescaleDB ──────────────────────────────────────────────
+  postgres:
+    image: timescale/timescaledb:latest-pg16
+    container_name: aegis_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB:       aegis
+      POSTGRES_USER:     aegis_user
+      POSTGRES_PASSWORD: aegis_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aegis_user -d aegis"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── FastAPI Backend ───────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: aegis_api
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL:      postgresql+psycopg2://aegis_user:aegis_password@postgres:5432/aegis
+      SYMBOLS:           RELIANCE.NS,INFY.NS,TCS.NS,AAPL,MSFT
+      BLOCKCHAIN_ENABLED: "false"   # set "true" after deploying contracts
+      CHAIN_RPC_URL:     ${CHAIN_RPC_URL:-}
+      CHAIN_ID:          ${CHAIN_ID:-11155111}
+      WALLET_PRIVATE_KEY: ${WALLET_PRIVATE_KEY:-}
+      PRICE_ANCHOR_CONTRACT: ${PRICE_ANCHOR_CONTRACT:-}
+      PREDICTION_AUDIT_CONTRACT: ${PREDICTION_AUDIT_CONTRACT:-}
+      BINANCE_API_KEY:   ${BINANCE_API_KEY:-}
+      BINANCE_API_SECRET: ${BINANCE_API_SECRET:-}
+      COINGECKO_API_KEY: ${COINGECKO_API_KEY:-}
+      ASSET_CLASSES:     stocks,crypto
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/app/models
+      - ./data:/app/data
+
+  # ── Streamlit Dashboard ───────────────────────────────────────────────────
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile.dashboard
+    container_name: aegis_dashboard
+    restart: unless-stopped
+    depends_on:
+      - api
+    environment:
+      API_BASE_URL: http://api:8000
+    ports:
+      - "8501:8501"
+
+volumes:
+  pgdata:

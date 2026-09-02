@@ -7,6 +7,10 @@ import type {
   AIInsight,
   User,
   AuthResponse,
+  BlockchainAnchor,
+  OraclePriceResponse,
+  CryptoBarsResponse,
+  DefiProtocol,
 } from '../types/api';
 
 const getBaseUrl = (): string => {
@@ -291,5 +295,40 @@ export const apiService = {
     });
 
     return insights;
-  }
+  },
+
+  async getBlockchainAnchors(symbol: string, limit: number = 50): Promise<BlockchainAnchor[]> {
+    const res = await fetchJson<{ symbol: string; anchors: BlockchainAnchor[] }>(
+      `/blockchain/anchors/${encodeURIComponent(symbol.toUpperCase())}?limit=${limit}`
+    );
+    return res.anchors || [];
+  },
+
+  async anchorPrediction(symbol: string, horizon: string = '5m', timeframe: string = '1m'): Promise<any> {
+    const params = new URLSearchParams({
+      symbol: symbol.toUpperCase(),
+      horizon,
+      timeframe,
+    });
+    return fetchJson(`/blockchain/anchor-prediction?${params.toString()}`, { method: 'POST' });
+  },
+
+  async getOraclePrice(symbol: string): Promise<OraclePriceResponse> {
+    return fetchJson<OraclePriceResponse>(`/oracle/prices/${encodeURIComponent(symbol.toUpperCase())}`);
+  },
+
+  async getCryptoBars(symbol: string = 'BTCUSDT', interval: string = '1m', limit: number = 300): Promise<CryptoBarsResponse> {
+    const params = new URLSearchParams({
+      symbol: symbol.toUpperCase(),
+      interval,
+      limit: limit.toString(),
+    });
+    return fetchJson<CryptoBarsResponse>(`/crypto/bars/recent?${params.toString()}`);
+  },
+
+  async getTopDefiProtocols(limit: number = 10): Promise<DefiProtocol[]> {
+    const res = await fetchJson<{ count: number; protocols: DefiProtocol[] }>(`/defi/top?limit=${limit}`);
+    return res.protocols || [];
+  },
 };
+

@@ -17,6 +17,8 @@ import {
   Activity,
   AlertTriangle,
   User as UserIcon,
+  ShieldCheck,
+  Globe,
 } from 'lucide-react';
 import { apiService } from '../services/api';
 
@@ -26,6 +28,8 @@ export type PageId =
   | 'analytics'
   | 'forecasts'
   | 'risk'
+  | 'blockchain'
+  | 'crypto'
   | 'watchlist'
   | 'analyst'
   | 'reports'
@@ -88,6 +92,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
     { id: 'analytics', label: 'Market Analytics', icon: TrendingUp },
     { id: 'forecasts', label: 'Forecasts', icon: LineChart },
     { id: 'risk', label: 'Risk Analytics', icon: ShieldAlert },
+    { id: 'blockchain', label: 'Blockchain Audit', icon: ShieldCheck, badge: 'Web3' },
+    { id: 'crypto', label: 'Crypto & DeFi', icon: Globe },
     { id: 'watchlist', label: 'Watchlist', icon: Bookmark },
     { id: 'analyst', label: 'AI Analyst', icon: Bot, badge: 'AI' },
     { id: 'reports', label: 'Reports', icon: FileText },
