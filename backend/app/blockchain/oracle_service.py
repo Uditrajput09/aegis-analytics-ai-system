@@ -146,7 +146,7 @@ class OracleService:
             if not df.empty:
                 last_price = float(df.iloc[-1]["close"])
                 last_ts = df.index[-1]
-                block_ts = last_ts.to_pydatetime() if hasattr(last_ts, "to_pydatetime") else datetime.utcnow()
+                block_ts = last_ts.to_pydatetime() if hasattr(last_ts, "to_pydatetime") else datetime.now(timezone.utc)
                 return {
                     "symbol": symbol.upper(),
                     "price_usd": last_price,
@@ -161,7 +161,7 @@ class OracleService:
             "symbol": symbol.upper(),
             "price_usd": 0.0,
             "round_id": None,
-            "block_ts": datetime.utcnow().isoformat(),
+            "block_ts": datetime.now(timezone.utc).isoformat(),
             "source": "unavailable",
         }
 

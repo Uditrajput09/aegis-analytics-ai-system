@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import re
 from datetime import datetime, timezone
 from pathlib import Path
@@ -14,6 +15,8 @@ from backend.app.features.feature_builder import Timeframe
 from backend.app.services.predictor import get_latest_prediction_or_none, predict_latest
 from backend.app.services.storage import fetch_bars, upsert_bars
 from backend.app.services.yahoo_client import fetch_ohlcv
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 _HORIZON_RE = re.compile(r"^(\d+)([md])$")
@@ -348,7 +351,7 @@ def blockchain_anchors(
             service = AnchorService(client, settings.price_anchor_contract, settings.prediction_audit_contract, settings.wallet_private_key)
             service.anchor_price(
                 symbol=symbol.upper(),
-                ts_utc=datetime.utcnow(),
+                ts_utc=datetime.now(timezone.utc),
                 open_p=100.0,
                 high_p=105.0,
                 low_p=99.0,
@@ -454,7 +457,7 @@ def anchor_prediction_endpoint(
             # Anchor current price if ML model artifact is not pre-trained
             res = service.anchor_price(
                 symbol=symbol.upper(),
-                ts_utc=datetime.utcnow(),
+                ts_utc=datetime.now(timezone.utc),
                 open_p=100.0,
                 high_p=105.0,
                 low_p=99.0,

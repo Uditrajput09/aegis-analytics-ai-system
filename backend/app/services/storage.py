@@ -13,9 +13,14 @@ and fallback prefix detection for SQLite.
 from __future__ import annotations
 
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
+
+
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc)
+
 
 import pandas as pd
 from sqlalchemy import (
@@ -86,7 +91,7 @@ class BlockchainAnchorORM(Base):
     block_number = Column(BigInteger, nullable=False)
     chain_id    = Column(Integer, nullable=False)        # 137=Polygon, 11155111=Sepolia
     gas_used    = Column(BigInteger, nullable=True)
-    created_at  = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at  = Column(DateTime, nullable=False, default=_utc_now)
 
 
 class OraclePriceORM(Base):
@@ -100,7 +105,7 @@ class OraclePriceORM(Base):
     price_usd   = Column(Numeric(20, 8), nullable=False)
     round_id    = Column(BigInteger, nullable=True)
     block_ts    = Column(DateTime, nullable=False)
-    fetched_at  = Column(DateTime, nullable=False, default=datetime.utcnow)
+    fetched_at  = Column(DateTime, nullable=False, default=_utc_now)
 
 
 # ── Engine Factory ─────────────────────────────────────────────────────────────
@@ -357,13 +362,20 @@ def insert_blockchain_anchor(
     block_number: int,
     chain_id: int,
     gas_used: Optional[int] = None,
-) -> None:
-    """Persist an on-chain anchoring record to the database."""
+) -> BlockchainAnchorORM:
+    """Persist an on-chain anchoring record to the database, ensuring idempotence."""
     engine = _make_engine()
     Session = sessionmaker(bind=engine)
     session = Session()
 
     try:
+        # Check if record with tx_hash already exists to prevent duplicate key errors
+        existing = session.execute(
+            select(BlockchainAnchorORM).where(BlockchainAnchorORM.tx_hash == tx_hash)
+        ).scalar_one_or_none()
+        if existing:
+            return existing
+
         record = BlockchainAnchorORM(
             anchor_type=anchor_type,
             ref_symbol=ref_symbol,
@@ -374,10 +386,20 @@ def insert_blockchain_anchor(
             block_number=block_number,
             chain_id=chain_id,
             gas_used=gas_used,
-            created_at=datetime.utcnow(),
+            created_at=_utc_now(),
         )
         session.add(record)
         session.commit()
+        session.refresh(record)
+        return record
+    except Exception as exc:
+        session.rollback()
+        existing = session.execute(
+            select(BlockchainAnchorORM).where(BlockchainAnchorORM.tx_hash == tx_hash)
+        ).scalar_one_or_none()
+        if existing:
+            return existing
+        raise exc
     finally:
         session.close()
         engine.dispose()
@@ -424,7 +446,7 @@ def upsert_oracle_price(
             "price_usd":   price_usd,
             "round_id":    round_id,
             "block_ts":    block_ts,
-            "fetched_at":  datetime.utcnow(),
+            "fetched_at":  _utc_now(),
         }]
         update_cols = ["oracle_addr", "price_usd", "round_id", "fetched_at"]
         stmt = _upsert_stmt(OraclePriceORM, records, ["symbol", "block_ts"], update_cols)

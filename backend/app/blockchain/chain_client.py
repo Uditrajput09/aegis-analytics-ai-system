@@ -9,11 +9,18 @@ from typing import Any, Dict, Optional
 
 try:
     from web3 import Web3
-    from web3.middleware import geth_poa_middleware
+    try:
+        from web3.middleware import ExtraDataToPOAMiddleware as geth_poa_middleware
+    except ImportError:
+        try:
+            from web3.middleware import geth_poa_middleware
+        except ImportError:
+            geth_poa_middleware = None
     WEB3_AVAILABLE = True
 except ImportError:
     WEB3_AVAILABLE = False
     Web3 = None
+    geth_poa_middleware = None
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +37,11 @@ class ChainClient:
             try:
                 self._w3 = Web3(Web3.HTTPProvider(rpc_url))
                 # Inject PoA middleware for Polygon / Sepolia testnets
-                self._w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+                if geth_poa_middleware is not None:
+                    try:
+                        self._w3.middleware_onion.inject(geth_poa_middleware, layer=0)
+                    except Exception:
+                        pass
             except Exception as err:
                 logger.warning(f"ChainClient failed to initialize Web3 provider: {err}")
                 self._w3 = None

@@ -56,3 +56,10 @@ def test_anchor_prediction():
     anchors = service.list_anchors("AAPL")
     assert len(anchors) == 1
     assert anchors[0]["anchor_type"] == "prediction"
+
+    # Verify repeated anchor calls generate unique transaction hashes without duplicate key error
+    res2 = service.anchor_prediction("AAPL", "5m", "1m", now, 0.02, 153.0, 149.0, 155.0, "mvp_v1")
+    assert res2["anchored"] is True
+    assert res2["tx_hash"] != res["tx_hash"]
+    all_anchors = service.list_anchors("AAPL")
+    assert len(all_anchors) == 2

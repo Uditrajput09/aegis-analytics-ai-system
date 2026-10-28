@@ -4,6 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from backend.app.api.routes import router
+from backend.app.api.db2_routes import router as db2_router
 from backend.app.core.config import load_settings
 from backend.app.services.storage import init_db
 
@@ -21,3 +22,4 @@ app.add_middleware(
 )
 
 app.include_router(router)
+app.include_router(db2_router)

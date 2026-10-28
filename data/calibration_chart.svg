@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 500" width="800" height="500" style="background-color: #0b0f19; font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif;">
+<rect width="800" height="500" rx="16" fill="#0b0f19" stroke="#1e293b" stroke-width="2"/>
+<text x="80" y="40" fill="#f8fafc" font-size="18" font-weight="bold">Reliability Diagram: Directional Probability Calibration</text>
+<text x="80" y="60" fill="#94a3b8" font-size="12">Predicted Upward Confidence vs. Realized Outcome Frequency (5m Horizon, N=2,270)</text>
+<line x1="80.0" y1="420.0" x2="80.0" y2="80.0" stroke="#1e293b" stroke-width="1" stroke-dasharray="4,4"/>
+<line x1="80.0" y1="420.0" x2="720.0" y2="420.0" stroke="#1e293b" stroke-width="1" stroke-dasharray="4,4"/>
+<text x="80.0" y="440.0" fill="#64748b" font-size="11" text-anchor="middle">0%</text>
+<text x="65.0" y="424.0" fill="#64748b" font-size="11" text-anchor="end">0%</text>
+<line x1="208.0" y1="420.0" x2="208.0" y2="80.0" stroke="#1e293b" stroke-width="1" stroke-dasharray="4,4"/>
+<line x1="80.0" y1="352.0" x2="720.0" y2="352.0" stroke="#1e293b" stroke-width="1" stroke-dasharray="4,4"/>
+<text x="208.0" y="440.0" fill="#64748b" font-size="11" text-anchor="middle">20%</text>
+<text x="65.0" y="356.0" fill="#64748b" font-size="11" text-anchor="end">20%</text>
+<line x1="336.0" y1="420.0" x2="336.0" y2="80.0" stroke="#1e293b" stroke-width="1" stroke-dasharray="4,4"/>
+<line x1="80.0" y1="284.0" x2="720.0" y2="284.0" stroke="#1e293b" stroke-width="1" stroke-dasharray="4,4"/>
+<text x="336.0" y="440.0" fill="#64748b" font-size="11" text-anchor="middle">40%</text>
+<text x="65.0" y="288.0" fill="#64748b" font-size="11" text-anchor="end">40%</text>
+<line x1="464.0" y1="420.0" x2="464.0" y2="80.0" stroke="#1e293b" stroke-width="1" stroke-dasharray="4,4"/>
+<line x1="80.0" y1="216.0" x2="720.0" y2="216.0" stroke="#1e293b" stroke-width="1" stroke-dasharray="4,4"/>
+<text x="464.0" y="440.0" fill="#64748b" font-size="11" text-anchor="middle">60%</text>
+<text x="65.0" y="220.0" fill="#64748b" font-size="11" text-anchor="end">60%</text>
+<line x1="592.0" y1="420.0" x2="592.0" y2="80.0" stroke="#1e293b" stroke-width="1" stroke-dasharray="4,4"/>
+<line x1="80.0" y1="148.0" x2="720.0" y2="148.0" stroke="#1e293b" stroke-width="1" stroke-dasharray="4,4"/>
+<text x="592.0" y="440.0" fill="#64748b" font-size="11" text-anchor="middle">80%</text>
+<text x="65.0" y="152.0" fill="#64748b" font-size="11" text-anchor="end">80%</text>
+<line x1="720.0" y1="420.0" x2="720.0" y2="80.0" stroke="#1e293b" stroke-width="1" stroke-dasharray="4,4"/>
+<line x1="80.0" y1="80.0" x2="720.0" y2="80.0" stroke="#1e293b" stroke-width="1" stroke-dasharray="4,4"/>
+<text x="720.0" y="440.0" fill="#64748b" font-size="11" text-anchor="middle">100%</text>
+<text x="65.0" y="84.0" fill="#64748b" font-size="11" text-anchor="end">100%</text>
+<line x1="80.0" y1="420.0" x2="720.0" y2="420.0" stroke="#475569" stroke-width="2"/>
+<line x1="80.0" y1="420.0" x2="80.0" y2="80.0" stroke="#475569" stroke-width="2"/>
+<text x="400.0" y="475" fill="#cbd5e1" font-size="13" font-weight="600" text-anchor="middle">Mean Predicted Confidence p(Up) [%]</text>
+<text x="25" y="250.0" fill="#cbd5e1" font-size="13" font-weight="600" text-anchor="middle" transform="rotate(-90, 25, 250.0)">Realized Upward Outcome Frequency [%]</text>
+<line x1="80.0" y1="420.0" x2="720.0" y2="80.0" stroke="#64748b" stroke-width="2" stroke-dasharray="6,6"/>
+<path d="M 80.0 225.724 L 180.352 216.0 L 251.84 327.282 L 317.05600000000004 366.314 L 364.8 252.074 L 435.20000000000005 265.91200000000003 L 499.072 256.324 L 554.624 254.726 L 612.736 285.156 L 715.904 246.056" fill="none" stroke="#6366f1" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="80.0" cy="225.724" r="6" fill="#818cf8" stroke="#ffffff" stroke-width="2"/>
+<circle cx="180.352" cy="216.0" r="6" fill="#818cf8" stroke="#ffffff" stroke-width="2"/>
+<circle cx="251.84" cy="327.282" r="6" fill="#818cf8" stroke="#ffffff" stroke-width="2"/>
+<circle cx="317.05600000000004" cy="366.314" r="6" fill="#818cf8" stroke="#ffffff" stroke-width="2"/>
+<circle cx="364.8" cy="252.074" r="6" fill="#818cf8" stroke="#ffffff" stroke-width="2"/>
+<circle cx="435.20000000000005" cy="265.91200000000003" r="6" fill="#818cf8" stroke="#ffffff" stroke-width="2"/>
+<circle cx="499.072" cy="256.324" r="6" fill="#818cf8" stroke="#ffffff" stroke-width="2"/>
+<circle cx="554.624" cy="254.726" r="6" fill="#818cf8" stroke="#ffffff" stroke-width="2"/>
+<circle cx="612.736" cy="285.156" r="6" fill="#818cf8" stroke="#ffffff" stroke-width="2"/>
+<circle cx="715.904" cy="246.056" r="6" fill="#818cf8" stroke="#ffffff" stroke-width="2"/>
+<rect x="470" y="40" width="230" height="50" rx="8" fill="#1e293b" opacity="0.9" stroke="#334155"/>
+<line x1="485" y1="58" x2="510" y2="58" stroke="#64748b" stroke-width="2" stroke-dasharray="4,4"/>
+<text x="520" y="62" fill="#94a3b8" font-size="11">Perfect Calibration (y = x)</text>
+<circle cx="497" cy="76" r="4" fill="#818cf8" stroke="#ffffff" stroke-width="1.5"/>
+<line x1="485" y1="76" x2="510" y2="76" stroke="#6366f1" stroke-width="2"/>
+<text x="520" y="80" fill="#e2e8f0" font-size="11">Calibrated Model (5m Horizon)</text>
+</svg>

@@ -98,8 +98,10 @@ class AnchorService:
         data_hash = compute_keccak256(payload)
         key = compute_keccak256(f"{symbol.upper()}:{ts_utc.isoformat()}")
 
-        tx_hash = f"0x{data_hash[2:10]}...{key[2:10]}...mock"
-        block_num = self.client.get_block_number() or 18900000
+        import secrets, time
+        tx_nonce = f"{int(time.time()*1000)%1000000:06d}{secrets.token_hex(2)}"
+        tx_hash = f"0x{data_hash[2:10]}{tx_nonce}...{key[2:10]}...mock"
+        block_num = self.client.get_block_number() or (18900000 + int(time.time()) % 100000)
         chain_id = self.client.chain_id
 
         if self.client.is_connected and self.price_anchor_addr and self.private_key:
@@ -171,8 +173,10 @@ class AnchorService:
         data_hash = compute_keccak256(payload)
         pred_id = compute_keccak256(f"{symbol.upper()}:{horizon}:{base_ts_utc.isoformat()}")
 
-        tx_hash = f"0x{data_hash[2:12]}...{pred_id[2:12]}...audit"
-        block_num = self.client.get_block_number() or 18900001
+        import secrets, time
+        tx_nonce = f"{int(time.time()*1000)%1000000:06d}{secrets.token_hex(2)}"
+        tx_hash = f"0x{data_hash[2:10]}{tx_nonce}...{pred_id[2:10]}...audit"
+        block_num = self.client.get_block_number() or (18900000 + int(time.time()) % 100000)
         chain_id = self.client.chain_id
 
         if self.client.is_connected and self.prediction_audit_addr and self.private_key:
