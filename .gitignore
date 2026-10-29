@@ -38,3 +38,8 @@ data/*.sqlite
 
 # Graphify internal cache
 graphify-out/cache/
+
+# Environment variables
+.env
+.env.local
+.env.*.local

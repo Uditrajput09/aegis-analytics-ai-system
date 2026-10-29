@@ -330,5 +330,16 @@ export const apiService = {
     const res = await fetchJson<{ count: number; protocols: DefiProtocol[] }>(`/defi/top?limit=${limit}`);
     return res.protocols || [];
   },
+async askAIAnalyst(
+    question: string,
+    symbol: string,
+    horizon: string = '5m',
+    timeframe: string = '1m',
+    context?: any
+  ): Promise<{ reply: string; model: string; provider: string }> {
+    return fetchJson<{ reply: string; model: string; provider: string }>('/ai/analyst', {
+      method: 'POST',
+      body: JSON.stringify({ question, symbol, horizon, timeframe, context }),
+    });
+  },
 };
-

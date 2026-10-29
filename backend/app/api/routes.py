@@ -577,3 +577,94 @@ def uniswap_top_pools(limit: int = Query(10, ge=1, le=50)):
 
     pools = fetch_uniswap_top_pools(limit=limit)
     return {"count": len(pools), "pools": pools}
+
+
+# ── AI Analyst (Powered by Google Gemini 3.5 Flash) ───────────────────────────
+from pydantic import BaseModel, Field
+
+
+class AIChatRequest(BaseModel):
+    question: str
+    symbol: str
+    horizon: str = "5m"
+    timeframe: str = "1m"
+    context: Optional[dict] = None
+
+
+class AIChatResponse(BaseModel):
+    reply: str
+    model: str
+    provider: str
+    timestamp: str
+
+
+@router.post("/ai/analyst", response_model=AIChatResponse)
+def ai_analyst(payload: AIChatRequest):
+    """Institutional financial analyst copilot powered by Gemini 3.5 Flash."""
+    from backend.app.services.gemini_service import generate_gemini_analysis
+    from backend.app.core.config import load_settings
+
+    settings = load_settings()
+    ctx = dict(payload.context) if payload.context else {}
+
+    # If context is incomplete, enrich it from latest model telemetry
+    if not ctx.get("expected_return") or not ctx.get("last_close"):
+        try:
+            pred = _predict_latest_http(
+                symbol=payload.symbol.upper(),
+                timeframe=payload.timeframe,  # type: ignore
+                horizon=payload.horizon,
+                force_update=False,
+            )
+            ctx["symbol"] = payload.symbol.upper()
+            ctx["horizon"] = payload.horizon
+            ctx["last_close"] = pred.last_close
+            ctx["expected_return"] = pred.expected_return
+            ctx["expected_price"] = pred.expected_price
+            ctx["p_up"] = pred.p_up
+            ctx["interval_low"] = pred.interval_low
+            ctx["interval_high"] = pred.interval_high
+            risk_obj = _get_risk_latest(
+                symbol=payload.symbol.upper(),
+                timeframe=payload.timeframe,  # type: ignore
+                horizon=payload.horizon,
+                force_update=False,
+            )
+            ctx["p_down_1"] = risk_obj.p_return_below_minus_1pct
+            ctx["p_down_2"] = risk_obj.p_return_below_minus_2pct
+            ctx["advice_label"] = "Bullish" if pred.expected_return > 0 else "Bearish"
+        except Exception as e:
+            logger.warning("Could not automatically populate telemetry context: %s", e)
+
+    reply = generate_gemini_analysis(
+        question=payload.question,
+        context=ctx,
+        api_key=settings.gemini_api_key,
+        model=settings.gemini_model,
+    )
+
+    if reply:
+        return AIChatResponse(
+            reply=reply,
+            model=settings.gemini_model,
+            provider="google-gemini",
+            timestamp=datetime.now(timezone.utc).isoformat(),
+        )
+
+    # Fallback to local deterministic assistant
+    try:
+        from dashboard.assistant import answer_question
+        fallback_reply = answer_question(payload.question, ctx)
+    except Exception:
+        fallback_reply = (
+            f"Outlook for {payload.symbol} ({payload.horizon}): "
+            f"Expected return {ctx.get('expected_return', 'N/A')}. "
+            f"Target price: {ctx.get('expected_price', 'N/A')}."
+        )
+
+    return AIChatResponse(
+        reply=fallback_reply,
+        model="heuristic-fallback",
+        provider="local-rules",
+        timestamp=datetime.now(timezone.utc).isoformat(),
+    )

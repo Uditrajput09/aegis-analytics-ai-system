@@ -1,4 +1,4 @@
-"""Context-aware dashboard assistant (rule-based, uses live forecast data)."""
+"""Context-aware dashboard assistant (hybrid: Google Gemini 3.5 Flash + deterministic fallback)."""
 
 from __future__ import annotations
 
@@ -87,20 +87,31 @@ def evaluate_strategy(context: dict[str, Any]) -> tuple[bool, list[str]]:
     return passed, checks
 
 
-def answer_question(question: str, context: dict[str, Any]) -> str:
+def answer_question(question: str, context: dict[str, Any], *, use_gemini: bool = True) -> str:
     q = question.lower().strip()
     if not q:
         return "Ask about the forecast, risk, horizons, strategy, or how to log a trade."
 
-    sym = context["symbol"]
-    hz = context["horizon_label"]
-    exp_ret = float(context["expected_return"])
-    exp_price = float(context["expected_price"])
-    last_close = float(context["last_close"])
+    # First attempt: Gemini AI reasoning
+    if use_gemini:
+        try:
+            from backend.app.services.gemini_service import generate_gemini_analysis
+            gemini_ans = generate_gemini_analysis(question, context)
+            if gemini_ans:
+                return gemini_ans
+        except Exception:
+            pass
+
+    # Deterministic fallback rules
+    sym = context.get("symbol", "ASSET")
+    hz = context.get("horizon_label", context.get("horizon", "5m"))
+    exp_ret = float(context.get("expected_return", 0.0))
+    exp_price = float(context.get("expected_price", 0.0))
+    last_close = float(context.get("last_close", 0.0))
     p_up = context.get("p_up")
     p_up_txt = "unavailable" if p_up is None else f"{float(p_up) * 100:.1f}%"
-    advice = context["advice_label"]
-    reason = context["advice_reason"]
+    advice = context.get("advice_label", "Hold")
+    reason = context.get("advice_reason", "")
 
     if any(w in q for w in ("hello", "hi", "help", "what can you")):
         return (
@@ -119,20 +130,24 @@ def answer_question(question: str, context: dict[str, Any]) -> str:
                 strat_block += f"\n\n{verdict}"
         return (
             f"**Signal: {advice}**\n\n{reason}\n\n"
-            f"Expected return {_pct(exp_ret)} → target **${exp_price:,.2f}** "
-            f"(last close ${last_close:,.2f}). P(up) = {p_up_txt}."
+            f"Expected return {_pct(exp_ret)} → target **₹{exp_price:,.2f}** "
+            f"(last close ₹{last_close:,.2f}). P(up) = {p_up_txt}."
             f"{strat_block}\n\n"
             "_Not financial advice — use the Trade Journal to record your decisions._"
         )
 
     if any(w in q for w in ("risk", "downside", "tail", "loss")):
+        p1 = context.get("p_down_1", 0.0)
+        p2 = context.get("p_down_2", 0.0)
+        ilow = context.get("interval_low", 0.0)
+        ihigh = context.get("interval_high", 0.0)
         return (
             f"**Risk for {sym} ({hz})**\n\n"
-            f"- P(return < −1%): **{context['p_down_1'] * 100:.2f}%**\n"
-            f"- P(return < −2%): **{context['p_down_2'] * 100:.2f}%**\n"
-            f"- Return band: {_pct(context['interval_low'], digits=2)} to {_pct(context['interval_high'], digits=2)}\n"
-            f"- Price band: ${last_close * (1 + context['interval_low']):,.2f} – "
-            f"${last_close * (1 + context['interval_high']):,.2f}\n\n"
+            f"- P(return < −1%): **{p1 * 100:.2f}%**\n"
+            f"- P(return < −2%): **{p2 * 100:.2f}%**\n"
+            f"- Return band: {_pct(ilow, digits=2)} to {_pct(ihigh, digits=2)}\n"
+            f"- Price band: ₹{last_close * (1 + ilow):,.2f} – "
+            f"₹{last_close * (1 + ihigh):,.2f}\n\n"
             "Higher tail probabilities mean more downside uncertainty over this horizon."
         )
 
@@ -146,7 +161,7 @@ def answer_question(question: str, context: dict[str, Any]) -> str:
             r = float(row.get("expected_return", 0))
             p = row.get("p_up")
             p_txt = "—" if p is None else f"{float(p) * 100:.0f}%"
-            marker = " ← active" if str(row.get("horizon")) == context["horizon"] else ""
+            marker = " ← active" if str(row.get("horizon")) == context.get("horizon") else ""
             lines.append(f"- **{h}**{marker}: return {_pct(r)}, P(up) {p_txt}")
         best = max(rows, key=lambda r: float(r.get("expected_return", 0)))
         lines.append(
@@ -156,13 +171,15 @@ def answer_question(question: str, context: dict[str, Any]) -> str:
         return "\n".join(lines)
 
     if any(w in q for w in ("forecast", "predict", "expected", "target", "price")):
+        ilow = context.get("interval_low", 0.0)
+        ihigh = context.get("interval_high", 0.0)
         return (
             f"**Forecast — {sym} ({hz})**\n\n"
-            f"- Last close: **${last_close:,.2f}**\n"
+            f"- Last close: **₹{last_close:,.2f}**\n"
             f"- Expected return: **{_pct(exp_ret)}**\n"
-            f"- Target price: **${exp_price:,.2f}**\n"
+            f"- Target price: **₹{exp_price:,.2f}**\n"
             f"- P(up): **{p_up_txt}**\n"
-            f"- Interval: {_pct(context['interval_low'], digits=2)} to {_pct(context['interval_high'], digits=2)}\n\n"
+            f"- Interval: {_pct(ilow, digits=2)} to {_pct(ihigh, digits=2)}\n\n"
             "Forecasts come from trained LightGBM models with conformal intervals and calibrated direction."
         )
 
@@ -178,11 +195,14 @@ def answer_question(question: str, context: dict[str, Any]) -> str:
         return f"**Strategy: {name}**\n\n" + "\n".join(f"- {c}" for c in checks) + f"\n\n{status}"
 
     if any(w in q for w in ("volatility", "volume", "period", "stats", "market")):
+        pret = context.get("period_return", 0.0)
+        vol = context.get("volatility", 0.0)
+        tf = context.get("timeframe", "1m")
         return (
             f"**Market stats — {sym}**\n\n"
-            f"- Period return (loaded window): **{_pct(context['period_return'], digits=2)}**\n"
-            f"- 1-bar volatility (std): **{context['volatility'] * 100:.2f}%**\n"
-            f"- Timeframe: **{context['timeframe']}**\n\n"
+            f"- Period return (loaded window): **{_pct(pret, digits=2)}**\n"
+            f"- 1-bar volatility (std): **{vol * 100:.2f}%**\n"
+            f"- Timeframe: **{tf}**\n\n"
             "Use a longer history window in the sidebar for smoother volatility estimates."
         )
 
@@ -193,7 +213,7 @@ def answer_question(question: str, context: dict[str, Any]) -> str:
         )
 
     return (
-        f"I didn't match that exactly. For **{sym} ({hz})**, the current signal is **{advice}** "
+        f"For **{sym} ({hz})**, the current signal is **{advice}** "
         f"with expected return {_pct(exp_ret)}. Try asking:\n"
         "- Should I buy or sell?\n"
         "- Explain the risk\n"

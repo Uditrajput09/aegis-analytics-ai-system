@@ -23,6 +23,8 @@ from pathlib import Path
 # Add project root to sys.path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROJECT_ROOT))
+if (PROJECT_ROOT / "src").is_dir():
+    sys.path.insert(0, str(PROJECT_ROOT / "src"))
 
 try:
     from fastapi.testclient import TestClient
@@ -150,6 +152,8 @@ def test_3_dialect_transpiler():
 def test_4_dbt_models_and_project():
     print("[4/10] Testing dbt Project, Profiles & In-Database Financial Models...")
     dbt_dir = PROJECT_ROOT / "db2_toolkit" / "dbt"
+    if not dbt_dir.exists():
+        dbt_dir = PROJECT_ROOT / "src" / "db2_toolkit" / "dbt"
     assert (dbt_dir / "dbt_project.yml").exists()
     assert (dbt_dir / "profiles.yml").exists()
 

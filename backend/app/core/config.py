@@ -2,7 +2,19 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import List, Optional
+
+from dotenv import load_dotenv
+
+# Search for .env in aegis root, parent dirs, or user home
+for candidate in [
+    Path.cwd() / ".env",
+    Path(__file__).resolve().parents[3] / ".env",
+    Path.home() / ".env",
+]:
+    if candidate.is_file():
+        load_dotenv(candidate, override=False)
 
 
 def _split_symbols(value: str) -> List[str]:
@@ -41,6 +53,10 @@ class Settings:
     coingecko_api_key: str
     asset_classes: List[str]    # e.g. ["stocks", "crypto", "defi"]
 
+    # ── Google Gemini AI ──────────────────────────────────────────────────────
+    gemini_api_key: str = ""
+    gemini_model: str = "gemini-3.5-flash"
+
 
 def load_settings() -> Settings:
     # Determine database URL: prefer DATABASE_URL env var, fall back to SQLite
@@ -73,5 +89,7 @@ def load_settings() -> Settings:
         binance_api_secret=os.getenv("BINANCE_API_SECRET", ""),
         coingecko_api_key=os.getenv("COINGECKO_API_KEY", ""),
         asset_classes=_split_symbols(os.getenv("ASSET_CLASSES", "stocks")),
+        # ── Google Gemini AI ──────────────────────────────────────────────────
+        gemini_api_key=os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY", ""),
+        gemini_model=os.getenv("GEMINI_MODEL", "gemini-3.5-flash"),
     )
-

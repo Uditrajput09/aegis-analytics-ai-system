@@ -52,7 +52,7 @@ export const AIAnalystPage: React.FC<AIAnalystPageProps> = ({ symbol, onNavigate
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSend = (textToSend?: string) => {
+  const handleSend = async (textToSend?: string) => {
     const q = textToSend || inputQuery;
     if (!q.trim() || !prediction || !risk) return;
 
@@ -67,10 +67,33 @@ export const AIAnalystPage: React.FC<AIAnalystPageProps> = ({ symbol, onNavigate
     if (!textToSend) setInputQuery('');
     setLoading(true);
 
-    setTimeout(() => {
-      const signal = apiService.deriveSignal(prediction, risk);
-      let replyText = '';
+    const signal = apiService.deriveSignal(prediction, risk);
+    const context = {
+      symbol,
+      horizon,
+      last_close: prediction.last_close,
+      expected_return: prediction.expected_return,
+      expected_price: prediction.expected_price,
+      p_up: prediction.p_up,
+      interval_low: prediction.interval_low,
+      interval_high: prediction.interval_high,
+      p_down_1: risk.p_return_below_minus_1pct,
+      p_down_2: risk.p_return_below_minus_2pct,
+      advice_label: signal.label,
+      advice_reason: signal.reason,
+    };
 
+    try {
+      const res = await apiService.askAIAnalyst(q, symbol, horizon, '1m', context);
+      const botMsg: AIChatMessage = {
+        id: (Date.now() + 1).toString(),
+        sender: 'assistant',
+        text: res.reply,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      };
+      setMessages(prev => [...prev, botMsg]);
+    } catch {
+      let replyText = '';
       const queryLower = q.toLowerCase();
 
       if (queryLower.includes('outlook') || queryLower.includes('prediction') || queryLower.includes('current')) {
@@ -89,10 +112,10 @@ export const AIAnalystPage: React.FC<AIAnalystPageProps> = ({ symbol, onNavigate
         text: replyText,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       };
-
       setMessages(prev => [...prev, botMsg]);
+    } finally {
       setLoading(false);
-    }, 600);
+    }
   };
 
   const suggestedQuestions = [
